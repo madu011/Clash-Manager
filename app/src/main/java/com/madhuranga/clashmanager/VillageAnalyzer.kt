@@ -11,6 +11,8 @@ data class VillageSnapshot(
     val heroTargetLevels: Map<String, Int> = emptyMap(),
     val troopLevels: Map<String, Int> = emptyMap(),
     val troopTargetLevels: Map<String, Int> = emptyMap(),
+    val buildingLevels: Map<String, Int> = emptyMap(),
+    val buildingTargetLevels: Map<String, Int> = emptyMap(),
     val rushedBuildings: List<String> = emptyList(),
     val availableBuilders: Int = 0
 )
@@ -54,6 +56,16 @@ object VillageAnalyzer {
                 reason = "Prioritise core offensive capacity so farming and attacks remain effective.",
                 priority = 90 - index * 3,
                 category = "Offence"
+            )
+        }
+
+        village.buildingLevels.forEach { (building, level) ->
+            val target = village.buildingTargetLevels[building] ?: return@forEach
+            if (level < target) result += UpgradeRecommendation(
+                title = "Plan $building upgrade",
+                reason = "Current level $level; your selected target is $target.",
+                priority = 78,
+                category = "Buildings"
             )
         }
 
