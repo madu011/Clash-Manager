@@ -396,22 +396,48 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                     }
                 }
                 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp), elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("YOUR VILLAGE PROFILE", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                            Text("Enter any player's tag to personalise this device's village planner.", color = Muted, fontSize = 12.sp)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, StoneEdge),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 7.dp)
+                    ) {
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .background(androidx.compose.ui.graphics.Brush.linearGradient(
+                                    listOf(Color(0xFF34465C), Color(0xFF1C2533), Color(0xFF30271F))
+                                ))
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🛡️", fontSize = 22.sp)
+                                Spacer(Modifier.width(9.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text("YOUR VILLAGE PROFILE", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                    Text("PLAYER COMMAND", color = Color(0xFFD8C39C), fontSize = 9.sp, letterSpacing = 1.5.sp)
+                                }
+                                Surface(color = Color(0xFF171E2A), shape = RoundedCornerShape(9.dp)) {
+                                    Text(if (playerTag.isBlank()) "NOT SET" else "SAVED", color = if (playerTag.isBlank()) Muted else Color(0xFF8EE6A6), fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp))
+                                }
+                            }
+                            Text("Enter your Player Tag to personalise this device's village planner.", color = Color(0xFFD5DCE6), fontSize = 12.sp)
                             OutlinedTextField(
                                 value = tagInput,
                                 onValueChange = { value -> tagInput = PlayerTagValidator.normalize(value) },
                                 label = { Text("Player Tag (e.g. #ABC123)") },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(13.dp)
                             )
                             Button(
                                 onClick = { playerTag = tagInput.trim(); prefs.edit().putString("player_tag", playerTag).apply() },
-                                enabled = tagInput.isBlank() || PlayerTagValidator.isValid(tagInput)
-                            ) { Text("Save player profile") }
-                            Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Muted, fontSize = 11.sp)
+                                enabled = tagInput.isBlank() || PlayerTagValidator.isValid(tagInput),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(13.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF17120A))
+                            ) { Text("SAVE PLAYER PROFILE", fontWeight = FontWeight.ExtraBold) }
+                            Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Color(0xFFCFD6E1), fontSize = 10.sp)
                         }
                     }
                 }
