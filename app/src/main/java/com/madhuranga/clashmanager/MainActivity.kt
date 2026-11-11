@@ -714,18 +714,48 @@ private fun QuickStartCard(
     onOpenPlanner: () -> Unit,
     onOpenHelp: () -> Unit
 ) {
-    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("WELCOME TO CLASH MANAGER", color = Gold, fontWeight = FontWeight.ExtraBold)
-            Text("Start with these simple steps. You can change your details later.", color = Muted, fontSize = 13.sp)
-            SetupGuideRow("1. Save your Player Tag", hasPlayerTag, "Use the profile box above.")
-            SetupGuideRow("2. Set up your village", false, "Add Town Hall, builders and optional village data.")
-            SetupGuideRow("3. Track your first upgrade", hasTasks, "Add a task and enter the remaining time.")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onOpenVillage, modifier = Modifier.weight(1f)) { Text("Village setup") }
-                Button(onClick = onOpenPlanner, modifier = Modifier.weight(1f)) { Text("Add upgrade") }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+        shape = RoundedCornerShape(20.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, StoneEdge),
+        elevation = CardDefaults.cardElevation(defaultElevation = 7.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth()
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF35465B), Color(0xFF1B2330))))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(11.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("📜", fontSize = 22.sp)
+                Spacer(Modifier.width(9.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("WELCOME, CHIEF!", color = Gold, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                    Text("YOUR FIRST MISSIONS", color = Color(0xFFD9C59F), fontSize = 9.sp, letterSpacing = 1.4.sp)
+                }
+                Text("⚔️", fontSize = 22.sp)
             }
-            TextButton(onClick = onOpenHelp) { Text("Need help? Open the simple guide") }
+            Text("Complete these steps to prepare your village command center.", color = Color(0xFFD5DCE6), fontSize = 12.sp)
+            SetupGuideRow("1. Save your Player Tag", hasPlayerTag, "Use the profile box above.")
+            HorizontalDivider(color = Color(0x556D7788))
+            SetupGuideRow("2. Set up your village", false, "Add Town Hall, builders and optional village data.")
+            HorizontalDivider(color = Color(0x556D7788))
+            SetupGuideRow("3. Track your first upgrade", hasTasks, "Add a task and enter the remaining time.")
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                Button(
+                    onClick = onOpenVillage,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF39485B), contentColor = Color.White)
+                ) { Text("🏡  VILLAGE", fontWeight = FontWeight.Bold) }
+                Button(
+                    onClick = onOpenPlanner,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF17120A))
+                ) { Text("⚒  ADD UPGRADE", fontWeight = FontWeight.ExtraBold) }
+            }
+            TextButton(onClick = onOpenHelp) { Text("❔  Need help? Open the player guide", color = Color(0xFFFFD994)) }
         }
     }
 }
