@@ -409,7 +409,7 @@ private fun saveTasks(tasks: List<UpgradeTask>): String {
 private fun summarizeVillageExport(root: JSONObject): String {
     val fields = root.keys().asSequence().toList()
     val structure = mutableListOf<String>()
-    collectVillageStructure(root, "$", structure, 0)
+    collectVillageStructure(root, "\\$", structure, 0)
     val preview = structure.take(10).joinToString(" • ")
     return "Valid JSON object imported • ${fields.size} root fields" +
         if (preview.isBlank()) "" else " • $preview"
