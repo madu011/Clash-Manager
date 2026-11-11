@@ -26,7 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
+import java.text.DateFormat
+import java.util.Date
 
 private val AnalyzerGold = Color(0xFFFFC857)
 private val AnalyzerMuted = Color(0xFF9AA8BA)
@@ -108,6 +111,11 @@ fun VillageRecommendationsScreen(
     buildingTargets: String,
     onBuildingTargetsChange: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val profilePrefs = remember(context) { context.getSharedPreferences("clash_manager", 0) }
+    var recoveryHistory by remember(playerTag) {
+        mutableStateOf(RecoveryHistory.decode(profilePrefs.getString("recovery_history_$playerTag", "[]") ?: "[]"))
+    }
     var recommendations by remember(playerTag) {
         mutableStateOf(emptyList<UpgradeRecommendation>())
     }
@@ -301,6 +309,16 @@ fun VillageRecommendationsScreen(
                                 )
                             recommendations = VillageAnalyzer.analyze(snapshot)
                             recoveryTasks = RushRecoveryPlanner.create(snapshot)
+                            val enteredCurrentLevels = parseRecoveryLevels(recoveryCurrentLevels) ?: emptyMap()
+                            recoveryHistory = RecoveryHistory.recordChanges(
+                                previous = recoveryHistory,
+                                startingLevels = parsedTargets.associate { it.name to it.current },
+                                currentLevels = enteredCurrentLevels,
+                                recordedAtMillis = System.currentTimeMillis()
+                            )
+                            profilePrefs.edit()
+                                .putString("recovery_history_$playerTag", RecoveryHistory.encode(recoveryHistory))
+                                .apply()
                             recoveryProgress = RecoveryProgressPlanner.calculate(
                                 parsedTargets.map { BuilderSchedulePlanner.Target(it.name, it.current, it.target) },
                                 parseRecoveryLevels(recoveryCurrentLevels) ?: emptyMap()
@@ -315,6 +333,19 @@ fun VillageRecommendationsScreen(
             }
             if (validationMessage.isNotBlank()) {
                 Text(validationMessage, color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+            }
+            if (recoveryHistory.isNotEmpty()) {
+                Text("RECOVERY HISTORY", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Text("Recorded when you generate priorities with a higher current level than the last saved level.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                recoveryHistory.asReversed().take(20).forEach { entry ->
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(entry.buildingName, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Level ${entry.fromLevel} → ${entry.toLevel}", color = AnalyzerGold)
+                            Text(DateFormat.getDateTimeInstance().format(Date(entry.recordedAtMillis)), color = AnalyzerMuted, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
             }
             if (recoveryProgress != null) {
                 val progress = recoveryProgress!!
