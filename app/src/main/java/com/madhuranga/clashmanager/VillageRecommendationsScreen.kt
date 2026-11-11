@@ -195,6 +195,7 @@ fun VillageRecommendationsScreen(
                             upgradeEstimates = emptyList()
                             builderSchedule = null
                             resourceBudget = null
+                            recoveryTasks = emptyList()
                         }
                         builders == null || builders !in 0..6 -> {
                             validationMessage = "Enter available builders from 0 to 6."
@@ -202,6 +203,7 @@ fun VillageRecommendationsScreen(
                             upgradeEstimates = emptyList()
                             builderSchedule = null
                             resourceBudget = null
+                            recoveryTasks = emptyList()
                         }
                         parsedTargets == null -> {
                             validationMessage = "Check building entries. Use name:current:target, with target above current."
@@ -209,6 +211,7 @@ fun VillageRecommendationsScreen(
                             upgradeEstimates = emptyList()
                             builderSchedule = null
                             resourceBudget = null
+                            recoveryTasks = emptyList()
                         }
                         parsedTargets.any { target ->
                             val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
@@ -224,6 +227,7 @@ fun VillageRecommendationsScreen(
                             upgradeEstimates = emptyList()
                             builderSchedule = null
                             resourceBudget = null
+                            recoveryTasks = emptyList()
                         }
                         else -> {
                             upgradeEstimates = estimateUpgrades(parsedTargets)
