@@ -1,6 +1,7 @@
 package com.madhuranga.clashmanager
 
 import android.os.Bundle
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.Manifest
@@ -103,8 +104,25 @@ fun ClashManagerApp() {
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportDetails by remember { mutableStateOf(prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
-    var attackScreenshot by remember { mutableStateOf<Uri?>(null) }
-    val pickAttackScreenshot = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> attackScreenshot = uri }
+    var attackScreenshot by remember(profileKey) {
+        mutableStateOf(prefs.getString("attack_screenshot_uri_$profileKey", null)?.let(Uri::parse))
+    }
+    val pickAttackScreenshot = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val permissionPersisted = runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }.isSuccess
+            attackScreenshot = uri
+            if (permissionPersisted) {
+                prefs.edit().putString("attack_screenshot_uri_$profileKey", uri.toString()).apply()
+            } else {
+                prefs.edit().remove("attack_screenshot_uri_$profileKey").apply()
+            }
+        }
+    }
     LaunchedEffect(playerTag) {
         exportSummary = prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: ""
         exportDetails = prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: ""
@@ -216,7 +234,7 @@ fun ClashManagerApp() {
                     }
                 }
                 if (tab == "Attack") {
-                    item { AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch("image/*") } }
+                    item { AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch(arrayOf("image/*")) } }
                 }
                 if (tab == "Village") {
                     item {
