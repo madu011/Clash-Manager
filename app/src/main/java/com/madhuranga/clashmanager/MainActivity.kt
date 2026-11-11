@@ -1,6 +1,7 @@
 package com.madhuranga.clashmanager
 
 import android.os.Bundle
+import android.net.Uri
 import android.os.Build
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -84,6 +85,21 @@ fun ClashManagerApp() {
     var thLevel by remember { mutableStateOf(prefs.getString("town_hall_level", "10") ?: "10") }
     var freeBuilders by remember { mutableStateOf(prefs.getString("available_builders", "1") ?: "1") }
     var rushedBuildings by remember { mutableStateOf(prefs.getString("rushed_buildings", "") ?: "") }
+    var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary", "") ?: "") }
+    var exportError by remember { mutableStateOf("") }
+    val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            runCatching {
+                val raw = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                    ?: error("Could not read the selected file")
+                val json = JSONObject(raw)
+                val summary = summarizeVillageExport(json)
+                prefs.edit().putString("village_export_json", raw).putString("village_export_summary", summary).apply()
+                exportSummary = summary
+                exportError = ""
+            }.onFailure { exportError = "Import failed: ${it.message ?: "Invalid JSON file"}" }
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -165,27 +181,46 @@ fun ClashManagerApp() {
                 }
                 if (tab == "Village") {
                     item {
-                        val snapshot = VillageSnapshot(
-                            playerTag = playerTag,
-                            townHallLevel = thLevel.toIntOrNull() ?: 1,
-                            availableBuilders = freeBuilders.toIntOrNull() ?: 0,
-                            rushedBuildings = rushedBuildings.split(",").map { it.trim() }.filter { it.isNotBlank() }
-                        )
-                        val suggestions = VillageAnalyzer.analyze(snapshot)
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                                Text("RUSH RECOVERY ANALYZER", color = Gold, fontWeight = FontWeight.Bold)
-                                Text("Offline checklist based on the details you enter. Not live game data.", color = Muted, fontSize = 12.sp)
-                                OutlinedTextField(thLevel, { thLevel = it.filter(Char::isDigit).take(2) }, label = { Text("Town Hall level") }, singleLine = true)
-                                OutlinedTextField(freeBuilders, { freeBuilders = it.filter(Char::isDigit).take(1) }, label = { Text("Available builders") }, singleLine = true)
-                                OutlinedTextField(rushedBuildings, { rushedBuildings = it }, label = { Text("Rushed buildings (comma separated)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-                                Text("RECOMMENDED NEXT STEPS", color = Blue, fontWeight = FontWeight.Bold)
-                                suggestions.forEachIndexed { index, item ->
-                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text("${index + 1}. ${item.title}", color = Color.White, fontWeight = FontWeight.SemiBold)
-                                        Text(item.reason, color = Muted, fontSize = 11.sp)
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.AccountTree, contentDescription = null, tint = Gold, modifier = Modifier.size(28.dp))
+                                    Spacer(Modifier.width(9.dp))
+                                    Column {
+                                        Text("VILLAGE DATA IMPORT", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                        Text("Import your own in-game village export", color = Muted, fontSize = 12.sp)
                                     }
                                 }
+                                Text("In Clash of Clans, open Settings → More Settings → Export village data. Then select the exported JSON file below.", color = Color.White, fontSize = 13.sp)
+                                Button(
+                                    onClick = { importVillageExport.launch(arrayOf("application/json", "text/json", "text/plain")) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Page),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.FileUpload, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("IMPORT VILLAGE JSON", fontWeight = FontWeight.Bold)
+                                }
+                                if (exportSummary.isNotBlank()) {
+                                    Surface(color = Color(0xFF18372D), shape = RoundedCornerShape(12.dp)) {
+                                        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                            Text("EXPORT IMPORTED", color = Color(0xFF8DE0A8), fontWeight = FontWeight.Bold)
+                                            Text(exportSummary, color = Color.White, fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                                if (exportError.isNotBlank()) Text(exportError, color = Color(0xFFFF8A80), fontSize = 12.sp)
+                                Text("The original export is kept locally on this device and linked to the selected player profile. The app will only use fields it can recognise; unknown fields are preserved for later parser improvements.", color = Muted, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("AUTOMATIC ONLINE PROFILE", color = Blue, fontWeight = FontWeight.Bold)
+                                Text(if (playerTag.isBlank()) "Add a Player Tag above to prepare online profile sync." else "Selected profile: $playerTag")
+                                Text("Online sync is being built. Official API data and imported village-export data will be combined; fields not supplied by either source will remain marked unavailable.", color = Muted, fontSize = 12.sp)
                             }
                         }
                     }
@@ -350,4 +385,17 @@ private fun saveTasks(tasks: List<UpgradeTask>): String {
         })
     }
     return array.toString()
+}
+private fun summarizeVillageExport(root: JSONObject): String {
+    val keys = root.keys().asSequence().toList()
+    val counts = mutableListOf<String>()
+    keys.forEach { key ->
+        when (val value = root.opt(key)) {
+            is JSONArray -> counts += "$key: ${value.length()} entries"
+            is JSONObject -> counts += "$key: object"
+        }
+    }
+    val details = counts.take(8).joinToString(" • ")
+    return if (details.isBlank()) "Valid JSON imported • root fields: ${keys.take(12).joinToString(", ")}"
+    else "Root fields: ${keys.take(12).joinToString(", ")} • $details"
 }
