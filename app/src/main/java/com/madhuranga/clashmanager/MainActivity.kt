@@ -1,6 +1,8 @@
 package com.madhuranga.clashmanager
 
 import android.os.Bundle
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import java.io.ByteArrayOutputStream
@@ -191,6 +193,7 @@ fun ClashManagerApp() {
             .putString("rushed_buildings_$profileKey", rushedBuildings)
             .putString("building_targets_$profileKey", buildingTargets)
             .apply()
+        VillagePlannerWidgetProvider.refreshAll(context)
     }
 
     MaterialTheme(
@@ -260,6 +263,28 @@ fun ClashManagerApp() {
                     item { AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch(arrayOf("image/*")) } }
                 }
                 if (tab == "Village") {
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("HOME SCREEN WIDGET", color = Gold, fontWeight = FontWeight.Bold)
+                                Text("Add your village upgrade summary to your Android home screen.", color = Muted, fontSize = 12.sp)
+                                Button(
+                                    onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            val manager = AppWidgetManager.getInstance(context)
+                                            val provider = ComponentName(context, VillagePlannerWidgetProvider::class.java)
+                                            if (manager.isRequestPinAppWidgetSupported) {
+                                                manager.requestPinAppWidget(provider, null, null)
+                                            } else {
+                                                android.widget.Toast.makeText(context, "Add Clash Manager from your launcher's Widgets menu.", android.widget.Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { Text("ADD TO HOME SCREEN") }
+                            }
+                        }
+                    }
                     item {
                         VillageRecommendationsScreen(
                             playerTag = playerTag,
