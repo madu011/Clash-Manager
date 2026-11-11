@@ -145,6 +145,39 @@ object BuildingUpgradeCatalog {
                 UpgradeStep(17, 13_000_000L, "Gold", 432_000L),
                 UpgradeStep(18, 21_000_000L, "Gold", 1_080_000L)
             )
+        ),
+        Building(
+            dataId = 1000011L,
+            name = "Wizard Tower",
+            levels = listOf(
+                LevelRequirement(1, 5), LevelRequirement(2, 5),
+                LevelRequirement(3, 6), LevelRequirement(4, 7),
+                LevelRequirement(5, 8), LevelRequirement(6, 8),
+                LevelRequirement(7, 9), LevelRequirement(8, 10),
+                LevelRequirement(9, 10), LevelRequirement(10, 11),
+                LevelRequirement(11, 12), LevelRequirement(12, 13),
+                LevelRequirement(13, 13), LevelRequirement(14, 14),
+                LevelRequirement(15, 15), LevelRequirement(16, 16),
+                LevelRequirement(17, 17)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 150_000L, "Gold", 5_400L),
+                UpgradeStep(3, 250_000L, "Gold", 14_400L),
+                UpgradeStep(4, 400_000L, "Gold", 28_800L),
+                UpgradeStep(5, 550_000L, "Gold", 36_000L),
+                UpgradeStep(6, 660_000L, "Gold", 43_200L),
+                UpgradeStep(7, 1_000_000L, "Gold", 64_800L),
+                UpgradeStep(8, 1_100_000L, "Gold", 72_000L),
+                UpgradeStep(9, 1_300_000L, "Gold", 86_400L),
+                UpgradeStep(10, 2_000_000L, "Gold", 108_000L),
+                UpgradeStep(11, 2_500_000L, "Gold", 129_600L),
+                UpgradeStep(12, 2_600_000L, "Gold", 151_200L),
+                UpgradeStep(13, 3_000_000L, "Gold", 172_800L),
+                UpgradeStep(14, 4_500_000L, "Gold", 259_200L),
+                UpgradeStep(15, 5_500_000L, "Gold", 345_600L),
+                UpgradeStep(16, 8_000_000L, "Gold", 388_800L),
+                UpgradeStep(17, 14_000_000L, "Gold", 475_200L)
+            )
         )
     )
 
