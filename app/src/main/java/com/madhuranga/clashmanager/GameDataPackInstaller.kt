@@ -68,14 +68,22 @@ class GameDataPackInstaller(
             GameDataPackParser.parse(rawPack, manifest.dataPackVersion)
 
             if (activeFile.exists()) {
-                val current = runCatching {
-                    JSONObject(activeFile.readText(Charsets.UTF_8)).getInt("dataPackVersion")
-                }.getOrDefault(-1)
-                require(manifest.dataPackVersion >= current) { "Older game data packs cannot replace newer data" }
-            }
-            if (activeFile.exists()) {
+                // Never treat a corrupt active file as a valid version baseline or backup.
+                val currentRaw = activeFile.readText(Charsets.UTF_8)
+                val currentVersion = JSONObject(currentRaw).getInt("dataPackVersion")
+                GameDataPackParser.parse(currentRaw, currentVersion)
+                require(manifest.dataPackVersion > currentVersion) {
+                    "This game data pack is already installed or is older than the active pack"
+                }
+
+                // Preserve only a known-good active pack for rollback.
                 val backup = File(directory, "previous-pack.json")
-                activeFile.copyTo(backup, overwrite = true)
+                val backupTemp = File(directory, "previous-pack.tmp")
+                activeFile.copyTo(backupTemp, overwrite = true)
+                if (!backupTemp.renameTo(backup)) {
+                    backupTemp.copyTo(backup, overwrite = true)
+                    backupTemp.delete()
+                }
             }
             if (!tempFile.renameTo(activeFile)) {
                 tempFile.copyTo(activeFile, overwrite = true)
