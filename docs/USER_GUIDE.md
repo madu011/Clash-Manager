@@ -36,7 +36,7 @@ The profile card is shown at the top of the main screen.
 | Save player profile | Stores the tag locally on this device. |
 | Profile status | Shows whether a tag is selected and whether online sync is connected. |
 
-A saved tag currently personalises local records only. It does not yet fetch a live profile from Supercell.
+A saved tag currently personalises local records only. Upgrade task lists and village-planning inputs are stored separately for each Player Tag on this device, and switching tags loads that profile's saved records. It does not yet fetch a live profile from Supercell.
 
 ## 4. Village tab — collect and import a game export
 
@@ -155,8 +155,8 @@ The current version stores the Player Tag, upgrade tasks, and imported JSON loca
 
 ### Available in this build
 - Native Android interface built with Kotlin and Jetpack Compose.
-- Local Player Tag selection.
-- Manual Builder and Laboratory upgrade tasks.
+- Local Player Tag selection with separate local planning records per profile.
+- Manual Builder and Laboratory upgrade tasks, stored separately by Player Tag.
 - Countdown, progress display, and task completion removal.
 - Local persistence of tasks.
 - Reminder scheduling foundation.
