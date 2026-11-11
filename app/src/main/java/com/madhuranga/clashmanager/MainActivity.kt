@@ -543,6 +543,62 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 }
                 if (tab == "Village") {
                     item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+                            shape = RoundedCornerShape(22.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFB58A42)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 7.dp)
+                        ) {
+                            Column(
+                                Modifier.fillMaxWidth()
+                                    .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        listOf(Color(0xFF46536A), Color(0xFF202938), Color(0xFF151D29))
+                                    ))
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Text("MY VILLAGE", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp)
+                                        Text(if (playerTag.isBlank()) "PLAYER PROFILE NOT SET" else playerTag, color = Color(0xFFD5DCE6), fontSize = 11.sp)
+                                    }
+                                    Surface(
+                                        color = Color(0xFF8B642A),
+                                        shape = RoundedCornerShape(14.dp),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5BD66))
+                                    ) {
+                                        Column(Modifier.padding(horizontal = 15.dp, vertical = 9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("TOWN HALL", color = Color(0xFFFFE3A0), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                            Text(thLevel.ifBlank { "—" }, color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
+                                        }
+                                    }
+                                }
+                                Text(
+                                    if (exportSummary.isNotBlank()) "VILLAGE EXPORT CONNECTED" else "BUILD YOUR VILLAGE PROFILE",
+                                    color = if (exportSummary.isNotBlank()) Color(0xFF9BE7A8) else Gold,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                    VillageStatTile("BUILDERS", freeBuilders.ifBlank { "—" }, "🛠️", Modifier.weight(1f))
+                                    VillageStatTile("RUSHED LIST", if (rushedBuildings.isBlank()) "—" else rushedBuildings.lines().count { it.isNotBlank() }.toString(), "🏗️", Modifier.weight(1f))
+                                    VillageStatTile("TARGETS", if (buildingTargets.isBlank()) "—" else buildingTargets.lines().count { it.isNotBlank() }.toString(), "🎯", Modifier.weight(1f))
+                                }
+                                if (exportSummary.isNotBlank()) {
+                                    Text(exportSummary, color = Color.White, fontSize = 11.sp, maxLines = 3)
+                                }
+                                Button(
+                                    onClick = { /* Village profile editor is available below. */ },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD49A32), contentColor = Color(0xFF1B2029)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("VILLAGE PROFILE & BUILDINGS", fontWeight = FontWeight.ExtraBold)
+                                }
+                            }
+                        }
+                    }
+                    item {
                         VillageSetupGuide(
                             hasPlayerTag = playerTag.isNotBlank(),
                             hasVillageExport = exportSummary.isNotBlank(),
@@ -769,6 +825,31 @@ item {
                 showAdd = false
             }
         )
+    }
+}
+
+@Composable
+private fun VillageStatTile(
+    title: String,
+    value: String,
+    icon: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = Color(0xFF303B4E),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF75603E))
+    ) {
+        Column(
+            Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(icon, fontSize = 19.sp)
+            Text(value, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+            Text(title, color = Color(0xFFCFD5DF), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        }
     }
 }
 
