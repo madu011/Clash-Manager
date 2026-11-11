@@ -3,6 +3,7 @@
 Developer: **Madhuranga Yasanath**
 
 ## Product direction
+- **Language policy: English only.** All app screens, buttons, notifications, update messages, help content, and documentation shipped with the app must use English. Do not add Sinhala, Serbian, or other language options.
 Clash Manager is an online-first companion app for any Clash of Clans player. The app combines official public player-profile data with an optional player-initiated in-game village JSON export. It must never imply that a Player Tag alone reveals the complete village.
 
 ## Phase 1 — Android foundation
@@ -51,7 +52,7 @@ Clash Manager is an online-first companion app for any Clash of Clans player. Th
 - [ ] Add a first-run guided walkthrough that can be skipped and reopened from Help
 - [ ] Add consistent empty states, inline examples, validation messages, and recovery actions to every form
 - [ ] Add accessible touch targets, screen-reader descriptions, scalable text, and contrast checks
-- [ ] Localize the complete interface and help content (English, Sinhala, Serbian first)
+- [x] Keep the complete interface and help content English-only; do not add language switching
 - [ ] Run usability checks with new players and revise confusing flows
 
 ## Phase 7 — In-app updates and game data packs
@@ -69,7 +70,7 @@ Clash Manager is an online-first companion app for any Clash of Clans player. Th
 ## Phase 6 — Quality and release
 - [ ] Unit/UI tests including malformed and older export files
 - [ ] Backup and restore
-- [ ] Accessibility and localization
+- [ ] Accessibility and English-language clarity review
 - [ ] Signed release APK/AAB
 - [ ] Privacy policy, data retention, and API compliance review
 
