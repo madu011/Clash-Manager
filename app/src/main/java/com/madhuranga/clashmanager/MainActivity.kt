@@ -51,11 +51,13 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-private val Page = Color(0xFF10141D)
-private val Panel = Color(0xFF1A2230)
-private val Gold = Color(0xFFFFC857)
-private val Blue = Color(0xFF54B8F5)
-private val Muted = Color(0xFF9AA8BA)
+private val Page = Color(0xFF090D16)
+private val Panel = Color(0xFF202633)
+private val Gold = Color(0xFFFFC247)
+private val Blue = Color(0xFF55BCEB)
+private val Muted = Color(0xFFB0B8C6)
+private val DeepGold = Color(0xFF9B5B18)
+private val StoneEdge = Color(0xFF66513A)
 
 data class UpgradeTask(
     val id: Long,
@@ -322,7 +324,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
         )
     ) {
         Scaffold(containerColor = Page, bottomBar = {
-            NavigationBar(containerColor = Panel) {
+            NavigationBar(\n                containerColor = Color(0xFF111722),\n                contentColor = Color.White,\n                tonalElevation = 8.dp\n            ) {
                 listOf("Dashboard", "Planner", "Attack", "Village", "Updates", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
@@ -374,7 +376,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                     }
                 }
                 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp), elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("YOUR VILLAGE PROFILE", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                             Text("Enter any player's tag to personalise this device's village planner.", color = Muted, fontSize = 12.sp)
