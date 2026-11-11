@@ -31,12 +31,28 @@ object BuilderSchedulePlanner {
             }) return null
         if (targets.map { it.buildingName.lowercase() }.distinct().size != targets.size) return null
 
+        // Longest-processing-time-first reduces the estimated finish time when
+        // several independent buildings compete for a limited number of builders.
+        val verifiedTargets = targets.map { target ->
+            val steps = (target.currentLevel + 1..target.targetLevel).map { level ->
+                BuildingUpgradeCatalog.nextUpgrade(target.buildingName, level - 1) ?: return null
+            }
+            val duration = steps.fold(0L) { total, step ->
+                if (Long.MAX_VALUE - total < step.durationSeconds) return null
+                total + step.durationSeconds
+            }
+            target to steps
+        }.sortedWith(
+            compareByDescending<Pair<Target, List<BuildingUpgradeCatalog.UpgradeStep>>> {
+                it.second.sumOf { step -> step.durationSeconds }
+            }.thenBy { it.first.buildingName.lowercase() }
+        )
+
         val builderReadyAt = LongArray(builderCount)
         val scheduled = mutableListOf<ScheduledUpgrade>()
-        for (target in targets) {
+        for ((target, steps) in verifiedTargets) {
             var buildingReadyAt = 0L
-            for (level in (target.currentLevel + 1)..target.targetLevel) {
-                val step = BuildingUpgradeCatalog.nextUpgrade(target.buildingName, level - 1) ?: return null
+            for (step in steps) {
                 val builderIndex = builderReadyAt.indices.minByOrNull { builderReadyAt[it] } ?: return null
                 val start = maxOf(builderReadyAt[builderIndex], buildingReadyAt)
                 val finish = start + step.durationSeconds
