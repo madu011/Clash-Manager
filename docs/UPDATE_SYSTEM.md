@@ -33,11 +33,12 @@ Users should be able to check, download, and install app updates from inside Cla
 - The current repository does not yet contain a published `updates/manifest.json`, a verified game data pack, or a signed public release. Therefore end-to-end public updates are not active. CI currently builds a debug APK; it is not suitable as a public update release.
 
 ## Release prerequisites
-1. Create and securely back up a stable Android release keystore.
-2. Add its values as protected GitHub Actions secrets.
-3. Build and publish signed release APKs with monotonically increasing versionCode.
-4. Publish the manifest and checksums only after the APK/data pack is uploaded and verified.
-5. Test upgrades from an installed previous release on Android 8 through current Android versions.
+1. Create and securely back up a stable Android release keystore. Never commit it or send it in chat.
+2. In GitHub repository Settings → Secrets and variables → Actions, add `ANDROID_KEYSTORE_BASE64` (base64-encoded keystore), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`.
+3. Push a version tag such as `v1.0.1` to trigger `.github/workflows/android-release.yml`. The workflow refuses to run without all four secrets, runs unit tests, builds the signed release APK, verifies its signature, calculates SHA-256, and publishes a GitHub Release.
+4. Increase `versionCode` and `versionName` in `app/build.gradle.kts` before every new release. Keep the same signing key for all updates.
+5. Publish `updates/manifest.json` and a verified game data pack only after the release assets are available and their checksums are confirmed.
+6. Test upgrades from an installed previous release on supported Android versions before public rollout.
 
 ## Game data pack format (schema version 1)
 
