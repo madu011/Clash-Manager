@@ -54,6 +54,18 @@ Clash Manager is an online-first companion app for any Clash of Clans player. Th
 - [ ] Localize the complete interface and help content (English, Sinhala, Serbian first)
 - [ ] Run usability checks with new players and revise confusing flows
 
+## Phase 7 — In-app updates and game data packs
+- [x] Define and validate a signed-release/data-pack manifest contract
+- [x] Add tests for trusted update URLs and SHA-256 metadata
+- [ ] Set up a stable protected Android release signing key in GitHub Actions secrets
+- [ ] Publish signed APKs and checksums as versioned GitHub Releases
+- [ ] Check update manifest on launch and on-demand from Settings
+- [ ] Notify only when a newer compatible app version is available
+- [ ] Download APK in-app, verify checksum, and launch Android's install confirmation
+- [ ] Publish versioned game-data packs independently from APK releases
+- [ ] Download, validate, safely activate, and roll back game-data packs
+- [ ] Show update history and a simple changelog in the app
+
 ## Phase 6 — Quality and release
 - [ ] Unit/UI tests including malformed and older export files
 - [ ] Backup and restore
