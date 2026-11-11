@@ -99,6 +99,7 @@ fun VillageRecommendationsScreen(
     }
     var validationMessage by remember(playerTag) { mutableStateOf("") }
     var upgradeEstimates by remember(playerTag) { mutableStateOf(emptyList<UpgradeEstimate>()) }
+    var builderSchedule by remember(playerTag) { mutableStateOf<BuilderSchedulePlanner.Result?>(null) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -156,20 +157,25 @@ fun VillageRecommendationsScreen(
                             validationMessage = "Save a Player Tag before creating profile recommendations."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
-                            upgradeEstimates = emptyList()
+                            builderSchedule = null
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
+                            builderSchedule = null
                         }
                         builders == null || builders !in 0..6 -> {
                             validationMessage = "Enter available builders from 0 to 6."
                             recommendations = emptyList()
+                            upgradeEstimates = emptyList()
+                            builderSchedule = null
                         }
                         parsedTargets == null -> {
                             validationMessage = "Check building entries. Use name:current:target, with target above current."
                             recommendations = emptyList()
+                            upgradeEstimates = emptyList()
+                            builderSchedule = null
                         }
                         parsedTargets.any { target ->
                             val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
@@ -182,9 +188,15 @@ fun VillageRecommendationsScreen(
                             val maximum = BuildingUpgradeCatalog.maximumLevelAt(invalidTarget.name, th)
                             validationMessage = "${invalidTarget.name}: Town Hall $th currently allows up to level $maximum in the verified catalog."
                             recommendations = emptyList()
+                            upgradeEstimates = emptyList()
+                            builderSchedule = null
                         }
                         else -> {
                             upgradeEstimates = estimateUpgrades(parsedTargets)
+                            builderSchedule = BuilderSchedulePlanner.create(
+                                parsedTargets.map { BuilderSchedulePlanner.Target(it.name, it.current, it.target) },
+                                builders
+                            )
                             recommendations = VillageAnalyzer.analyze(
                                 VillageSnapshot(
                                     playerTag = playerTag,
@@ -234,6 +246,32 @@ fun VillageRecommendationsScreen(
                 } else {
                     Text(
                         "Overall total unavailable because one or more building ranges are missing verified data.",
+                        color = AnalyzerMuted,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                if (builderSchedule != null) {
+                    Text("BUILDER SCHEDULE", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Estimated completion with $availableBuilders available builder(s): ${formatDuration(builderSchedule!!.elapsedSeconds)}",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "Illustrative schedule based on verified durations. It assumes builders are free now and does not account for resources, boosts, or other game restrictions.",
+                        color = AnalyzerMuted,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    builderSchedule!!.upgrades.forEach { item ->
+                        Text(
+                            "Builder ${item.builderNumber} • ${item.buildingName} → Lv ${item.targetLevel} • ${formatDuration(item.startAfterSeconds)}–${formatDuration(item.finishAfterSeconds)}",
+                            color = AnalyzerMuted,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                } else {
+                    Text(
+                        "Builder schedule unavailable: enter at least one available builder and use only upgrade ranges with complete verified data.",
                         color = AnalyzerMuted,
                         style = MaterialTheme.typography.bodySmall
                     )
