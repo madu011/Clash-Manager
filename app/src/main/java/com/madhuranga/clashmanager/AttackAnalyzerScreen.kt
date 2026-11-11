@@ -21,7 +21,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var targetTownHall by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("3-star") }
     var notes by remember { mutableStateOf("") }
-    var prepared by remember { mutableStateOf(false) }
+    var prepared by remember { mutableStateOf(false) }\n    var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
@@ -60,7 +60,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     Text(if (screenshotUri == null) "ATTACH BASE SCREENSHOT" else "CHANGE BASE SCREENSHOT")
                 }
                 Text(if (screenshotUri == null) "No target base image attached." else "Target base screenshot attached.", color = muted, fontSize = 11.sp)
-                Button(onClick = { prepared = true }, enabled = ownTownHall.toIntOrNull() in 1..18 && targetTownHall.toIntOrNull() in 1..18 && screenshotUri != null, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))) {
+                Button(onClick = {\n                    validationErrors = AttackAnalysisValidator.validate(\n                        playerTag = playerTag,\n                        ownTownHallLevel = ownTownHall.toIntOrNull(),\n                        targetTownHallLevel = targetTownHall.toIntOrNull(),\n                        starGoal = goal.substringBefore("-").toIntOrNull() ?: 0,\n                        hasScreenshot = screenshotUri != null,\n                        notes = notes\n                    )\n                    prepared = validationErrors.isEmpty()\n                }, enabled = true, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))) {
                     Text("PREPARE ANALYSIS", fontWeight = FontWeight.Bold)
                 }
             }
