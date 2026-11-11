@@ -100,6 +100,10 @@ fun VillageRecommendationsScreen(
     var validationMessage by remember(playerTag) { mutableStateOf("") }
     var upgradeEstimates by remember(playerTag) { mutableStateOf(emptyList<UpgradeEstimate>()) }
     var builderSchedule by remember(playerTag) { mutableStateOf<BuilderSchedulePlanner.Result?>(null) }
+    var goldBalance by remember(playerTag) { mutableStateOf("0") }
+    var elixirBalance by remember(playerTag) { mutableStateOf("0") }
+    var darkElixirBalance by remember(playerTag) { mutableStateOf("0") }
+    var resourceBudget by remember(playerTag) { mutableStateOf<List<ResourceBudgetPlanner.ResourceStatus>?>(null) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -147,6 +151,29 @@ fun VillageRecommendationsScreen(
                 supportingText = { Text("Format: Archer Tower:10:15, Cannon:12:15 (name:current:target)") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Text("CURRENT RESOURCE BALANCES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+            Text("Enter your current in-game balances. The planner compares them with verified upgrade costs.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+            OutlinedTextField(
+                value = goldBalance,
+                onValueChange = { goldBalance = it.filter(Char::isDigit).take(12) },
+                label = { Text("Available Gold") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = elixirBalance,
+                onValueChange = { elixirBalance = it.filter(Char::isDigit).take(12) },
+                label = { Text("Available Elixir") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = darkElixirBalance,
+                onValueChange = { darkElixirBalance = it.filter(Char::isDigit).take(12) },
+                label = { Text("Available Dark Elixir") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
             Button(
                 onClick = {
                     val th = townHallLevel.toIntOrNull()
@@ -158,24 +185,28 @@ fun VillageRecommendationsScreen(
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
                             builderSchedule = null
+                            resourceBudget = null
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
                             builderSchedule = null
+                            resourceBudget = null
                         }
                         builders == null || builders !in 0..6 -> {
                             validationMessage = "Enter available builders from 0 to 6."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
                             builderSchedule = null
+                            resourceBudget = null
                         }
                         parsedTargets == null -> {
                             validationMessage = "Check building entries. Use name:current:target, with target above current."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
                             builderSchedule = null
+                            resourceBudget = null
                         }
                         parsedTargets.any { target ->
                             val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
@@ -190,6 +221,7 @@ fun VillageRecommendationsScreen(
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
                             builderSchedule = null
+                            resourceBudget = null
                         }
                         else -> {
                             upgradeEstimates = estimateUpgrades(parsedTargets)
@@ -197,6 +229,16 @@ fun VillageRecommendationsScreen(
                                 parsedTargets.map { BuilderSchedulePlanner.Target(it.name, it.current, it.target) },
                                 builders
                             )
+                            resourceBudget = builderSchedule?.let { schedule ->
+                                ResourceBudgetPlanner.compare(
+                                    requiredCosts = schedule.totalCosts,
+                                    availableBalances = mapOf(
+                                        "Gold" to (goldBalance.toLongOrNull() ?: 0L),
+                                        "Elixir" to (elixirBalance.toLongOrNull() ?: 0L),
+                                        "Dark Elixir" to (darkElixirBalance.toLongOrNull() ?: 0L)
+                                    )
+                                )
+                            }
                             recommendations = VillageAnalyzer.analyze(
                                 VillageSnapshot(
                                     playerTag = playerTag,
@@ -275,6 +317,28 @@ fun VillageRecommendationsScreen(
                         color = AnalyzerMuted,
                         style = MaterialTheme.typography.bodySmall
                     )
+                }
+                if (resourceBudget != null) {
+                    Text("RESOURCE BUDGET CHECK", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                    resourceBudget!!.forEach { status ->
+                        Surface(
+                            color = Color(0xFF253244),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(status.resource, color = Color.White, fontWeight = FontWeight.Bold)
+                                Text("Required: ${String.format(Locale.US, "%,d", status.required)}", color = AnalyzerMuted)
+                                Text("Available: ${String.format(Locale.US, "%,d", status.available)}", color = AnalyzerMuted)
+                                Text(
+                                    if (status.sufficient) "READY — enough resources"
+                                    else "SHORTAGE: ${String.format(Locale.US, "%,d", status.shortage)}",
+                                    color = if (status.sufficient) Color(0xFF75D69C) else AnalyzerGold,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
                 upgradeEstimates.forEach { estimate ->
                     Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
