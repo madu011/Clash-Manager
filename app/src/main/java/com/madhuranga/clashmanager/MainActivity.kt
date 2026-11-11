@@ -324,7 +324,11 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
         )
     ) {
         Scaffold(containerColor = Page, bottomBar = {
-            NavigationBar(\n                containerColor = Color(0xFF111722),\n                contentColor = Color.White,\n                tonalElevation = 8.dp\n            ) {
+            NavigationBar(
+                containerColor = Color(0xFF111722),
+                contentColor = Color.White,
+                tonalElevation = 8.dp
+            ) {
                 listOf("Dashboard", "Planner", "Attack", "Village", "Updates", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
