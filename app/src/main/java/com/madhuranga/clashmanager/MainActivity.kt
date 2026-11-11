@@ -76,6 +76,8 @@ fun ClashManagerApp() {
     var tasks by remember {
         mutableStateOf(loadTasks(prefs.getString("tasks", "[]") ?: "[]"))
     }
+    var playerTag by remember { mutableStateOf(prefs.getString("player_tag", "") ?: "") }
+    var tagInput by remember { mutableStateOf(playerTag) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf("Dashboard") }
@@ -134,6 +136,26 @@ fun ClashManagerApp() {
                 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("YOUR VILLAGE PROFILE", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                            Text("Enter any player's tag to personalise this device's village planner.", color = Muted, fontSize = 12.sp)
+                            OutlinedTextField(
+                                value = tagInput,
+                                onValueChange = { value -> tagInput = value.uppercase().filter { it.isLetterOrDigit() || it == '#' }.take(10) },
+                                label = { Text("Player Tag (e.g. #ABC123)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Button(
+                                onClick = { playerTag = tagInput.trim(); prefs.edit().putString("player_tag", playerTag).apply() },
+                                enabled = tagInput.isBlank() || tagInput.matches(Regex("#?[0289PYLQGRJCUV]{3,10}"))
+                            ) { Text("Save player profile") }
+                            Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Muted, fontSize = 11.sp)
+                        }
+                    }
+                }
+                item {
+                    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("BUILDER LOG", color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                             val active = tasks.count { it.remaining(now) > 0 && it.category == "Builder" }
                             Text("$active ACTIVE TASKS", color = Muted, fontSize = 12.sp)
@@ -162,9 +184,6 @@ fun ClashManagerApp() {
                 item {
                     Text("QUICK PLANNER", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                     Text("Add your current upgrades to track countdowns. Recommendations will be enabled after your village data is connected.", color = Muted, fontSize = 13.sp)
-                }
-                item {
-                    Text("Data source: device tracker • Player tag: not connected", color = Muted, fontSize = 11.sp)
                 }
             }
         }
