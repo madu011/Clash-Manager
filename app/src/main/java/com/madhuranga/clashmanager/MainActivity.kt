@@ -325,9 +325,10 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
     ) {
         Scaffold(containerColor = Page, bottomBar = {
             NavigationBar(
-                containerColor = Color(0xFF111722),
+                containerColor = Color(0xFF171D29),
                 contentColor = Color.White,
-                tonalElevation = 8.dp
+                tonalElevation = 12.dp,
+                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
             ) {
                 listOf("Home", "Village", "Attack", "Tools", "More").forEach { item ->
                     val destination = when (item) {
@@ -361,7 +362,14 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                 fontSize = 18.sp
                             )
                         },
-                        label = { Text(item, fontSize = 10.sp, maxLines = 1) }
+                        label = { Text(item, fontSize = 10.sp, fontWeight = if (tab == destination) FontWeight.ExtraBold else FontWeight.Medium, maxLines = 1) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFFFFD36E),
+                            selectedTextColor = Color(0xFFFFD36E),
+                            indicatorColor = Color(0xFF51401F),
+                            unselectedIconColor = Color(0xFFB9C0CB),
+                            unselectedTextColor = Color(0xFFB9C0CB)
+                        )
                     )
                 }
             }
@@ -963,30 +971,40 @@ private fun GameShortcut(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(88.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF30394A)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF8B7047)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+        modifier = modifier.height(96.dp),
+        shape = RoundedCornerShape(15.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF252E3D)),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFB28A4C)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(
             Modifier.fillMaxSize().background(
                 androidx.compose.ui.graphics.Brush.verticalGradient(
-                    listOf(Color(0xFF68778A), Color(0xFF394557), Color(0xFF1B2431))
+                    listOf(Color(0xFF77869A), Color(0xFF465368), Color(0xFF222B39))
                 )
-            ).padding(7.dp)
+            )
         ) {
             Column(
-                Modifier.fillMaxSize(),
+                Modifier.fillMaxSize().padding(horizontal = 5.dp, vertical = 7.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(icon, fontSize = 29.sp)
-                Spacer(Modifier.height(3.dp))
-                Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                Surface(
+                    color = Color(0xFF293548),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD6B16D)),
+                    shadowElevation = 4.dp
+                ) {
+                    Text(icon, modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp), fontSize = 26.sp)
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(label.uppercase(), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Black, maxLines = 1)
             }
-            androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter)) {
-                drawRect(Color(0x99F5D28A))
+            androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(3.dp).align(Alignment.TopCenter)) {
+                drawRect(Color(0xFFE5C27D))
+            }
+            androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter)) {
+                drawRect(Color(0x667C8CA0))
             }
         }
     }
