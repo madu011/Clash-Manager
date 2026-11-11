@@ -368,14 +368,30 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("CLASH MANAGER", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                            Text("Village Command Center", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("Designed & Developed by Madhuranga Yasanath", color = Muted, fontSize = 11.sp)
-                        }
-                        Surface(shape = CircleShape, color = Panel) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Gold, modifier = Modifier.padding(12.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF26354A)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(androidx.compose.ui.graphics.Brush.linearGradient(
+                                    listOf(Color(0xFF425D79), Color(0xFF202A3B), Color(0xFF6A421F))
+                                ))
+                                .padding(18.dp)
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("⚔️  CLASH MANAGER", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
+                                    Icon(Icons.Default.Shield, contentDescription = "Village shield", tint = Gold, modifier = Modifier.size(30.dp))
+                                }
+                                Text("VILLAGE COMMAND CENTER", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                                Text("Plan  •  Analyze  •  Manage  •  Improve", color = Color(0xFFFFD994), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                HorizontalDivider(color = Color(0x66FFC247))
+                                Text("Designed & Developed by Madhuranga Yasanath", color = Color(0xFFD7DFEA), fontSize = 10.sp)
+                            }
                         }
                     }
                 }
