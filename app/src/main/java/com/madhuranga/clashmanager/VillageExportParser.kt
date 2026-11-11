@@ -46,7 +46,7 @@ object VillageExportParser {
             val array = root.optJSONArray(key) ?: return@mapNotNull null
             parseCategory(key, array)
         }
-        require(sections.isNotEmpty() && categories.isNotEmpty()) {
+        require(sections.isNotEmpty()) {
             "No recognised village-export collections were found"
         }
         return VillageExportSnapshot(
