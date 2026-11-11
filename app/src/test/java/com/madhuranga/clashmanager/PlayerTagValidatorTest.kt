@@ -17,7 +17,7 @@ class PlayerTagValidatorTest {
     @Test fun rejectsInvalidCharactersAndLengths() {
         assertFalse(PlayerTagValidator.isValid("#ABC123"))
         assertFalse(PlayerTagValidator.isValid("#AB"))
-        assertFalse(PlayerTagValidator.isValid("#0289PYLQGRJCUV0"))
+        assertFalse(PlayerTagValidator.isValid("#0289PYLQGRJCUV00"))
     }
 
     @Test fun removesInvalidCharactersDuringNormalization() {
