@@ -347,6 +347,46 @@ fun VillageRecommendationsScreen(
                     }
                 }
             }
+            if (recoveryHistory.isNotEmpty()) {
+                val analytics = RecoveryAnalytics.summarize(recoveryHistory, System.currentTimeMillis(), 8)
+                Text("RECOVERY ANALYTICS • LAST 8 WEEKS", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("LEVELS GAINED", color = AnalyzerMuted, style = MaterialTheme.typography.labelSmall)
+                            Text(analytics.totalLevelsGained.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("UPGRADE EVENTS", color = AnalyzerMuted, style = MaterialTheme.typography.labelSmall)
+                            Text(analytics.totalUpgradeEvents.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("BUILDINGS", color = AnalyzerMuted, style = MaterialTheme.typography.labelSmall)
+                            Text(analytics.buildingsImproved.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                Text("Average: ${String.format(Locale.US, "%.1f", analytics.averageLevelsPerWeek)} levels per week", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                val maxWeeklyLevels = analytics.weekly.maxOfOrNull { it.completedLevels }?.coerceAtLeast(1) ?: 1
+                analytics.weekly.forEach { week ->
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text(DateFormat.getDateInstance(DateFormat.SHORT).format(Date(week.startMillis)), color = AnalyzerMuted, style = MaterialTheme.typography.labelSmall)
+                            Text("${week.completedLevels} levels • ${week.upgradeEvents} events", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                        }
+                        androidx.compose.material3.LinearProgressIndicator(
+                            progress = { week.completedLevels.toFloat() / maxWeeklyLevels.toFloat() },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = AnalyzerGold,
+                            trackColor = Color(0xFF39485B)
+                        )
+                    }
+                }
+            }
             if (recoveryProgress != null) {
                 val progress = recoveryProgress!!
                 Text("RECOVERY PROGRESS", color = AnalyzerGold, fontWeight = FontWeight.Bold)
