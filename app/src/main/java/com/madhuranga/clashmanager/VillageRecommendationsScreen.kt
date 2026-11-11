@@ -104,6 +104,7 @@ fun VillageRecommendationsScreen(
     var elixirBalance by remember(playerTag) { mutableStateOf("0") }
     var darkElixirBalance by remember(playerTag) { mutableStateOf("0") }
     var resourceBudget by remember(playerTag) { mutableStateOf<List<ResourceBudgetPlanner.ResourceStatus>?>(null) }
+    var recoveryTasks by remember(playerTag) { mutableStateOf<List<RushRecoveryPlanner.Task>>(emptyList()) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -186,6 +187,7 @@ fun VillageRecommendationsScreen(
                             upgradeEstimates = emptyList()
                             builderSchedule = null
                             resourceBudget = null
+                            recoveryTasks = emptyList()
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
@@ -239,8 +241,7 @@ fun VillageRecommendationsScreen(
                                     )
                                 )
                             }
-                            recommendations = VillageAnalyzer.analyze(
-                                VillageSnapshot(
+                            val snapshot = VillageSnapshot(
                                     playerTag = playerTag,
                                     townHallLevel = th,
                                     availableBuilders = builders,
@@ -252,7 +253,8 @@ fun VillageRecommendationsScreen(
                                         .distinct()
                                         .take(8)
                                 )
-                            )
+                            recommendations = VillageAnalyzer.analyze(snapshot)
+                            recoveryTasks = RushRecoveryPlanner.create(snapshot)
                             validationMessage = "Based on the profile details you entered. Verify each suggestion in-game."
                         }
                     }
@@ -263,6 +265,23 @@ fun VillageRecommendationsScreen(
             }
             if (validationMessage.isNotBlank()) {
                 Text(validationMessage, color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+            }
+            if (recoveryTasks.isNotEmpty()) {
+                Text("RUSH RECOVERY CHECKLIST", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Text("Tasks are ranked from the level gaps you entered. Unreported buildings are not assumed to be rushed.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                recoveryTasks.forEachIndexed { index, task ->
+                    Surface(
+                        color = Color(0xFF253244),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("${index + 1}. ${task.buildingName}", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Level ${task.currentLevel} → ${task.targetLevel} • ${task.remainingLevels} level(s) remaining", color = AnalyzerMuted)
+                            Text("Recovery priority: ${task.priority}", color = AnalyzerGold, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
             }
             if (upgradeEstimates.isNotEmpty()) {
                 Text("VERIFIED UPGRADE ESTIMATES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
