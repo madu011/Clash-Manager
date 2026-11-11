@@ -264,6 +264,16 @@ fun ClashManagerApp() {
                 }
                 if (tab == "Village") {
                     item {
+                        VillageSetupGuide(
+                            hasPlayerTag = playerTag.isNotBlank(),
+                            hasVillageExport = exportSummary.isNotBlank(),
+                            hasTownHall = thLevel.toIntOrNull() in 1..18,
+                            hasBuilderCount = freeBuilders.toIntOrNull() in 1..6,
+                            hasUpgradeTargets = buildingTargets.isNotBlank(),
+                            hasAttackScreenshot = attackScreenshot != null
+                        )
+                    }
+                    item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("HOME SCREEN WIDGET", color = Gold, fontWeight = FontWeight.Bold)
