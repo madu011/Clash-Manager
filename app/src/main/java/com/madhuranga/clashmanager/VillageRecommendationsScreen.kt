@@ -156,6 +156,7 @@ fun VillageRecommendationsScreen(
                             validationMessage = "Save a Player Tag before creating profile recommendations."
                             recommendations = emptyList()
                             upgradeEstimates = emptyList()
+                            upgradeEstimates = emptyList()
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
@@ -211,6 +212,31 @@ fun VillageRecommendationsScreen(
             if (upgradeEstimates.isNotEmpty()) {
                 Text("VERIFIED UPGRADE ESTIMATES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
                 Text("Only complete, verified catalog ranges are totaled. Time is cumulative builder time.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                if (upgradeEstimates.all { it.cost != null && it.durationSeconds != null }) {
+                    val totalCost = upgradeEstimates.sumOf { it.cost ?: 0L }
+                    val totalBuilderSeconds = upgradeEstimates.sumOf { it.durationSeconds ?: 0L }
+                    Surface(
+                        color = Color(0xFF303D50),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("TOTAL VERIFIED PLAN", color = Color.White, fontWeight = FontWeight.ExtraBold)
+                            Text("Total Gold: ${String.format(Locale.US, "%,d", totalCost)}", color = AnalyzerGold)
+                            Text("Combined builder time: ${formatDuration(totalBuilderSeconds)}", color = AnalyzerMuted)
+                            Text("Assumes one builder works continuously; this is not a calendar finish date.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                } else {
+                    Text(
+                        "Overall total unavailable because one or more building ranges are missing verified data.",
+                        color = AnalyzerMuted,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 upgradeEstimates.forEach { estimate ->
                     Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
