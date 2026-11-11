@@ -153,7 +153,7 @@ fun ClashManagerApp() {
                     "${section.key}: ${section.entryCount} ${section.shape}"
                 } + "\n" + parsedExport.categories.joinToString("\n") { category ->
                     val knownNames = category.items.mapNotNull { item ->
-                        GameDataCatalog.nameFor(item.dataId)?.let { name -> "$name ×${item.count}" }
+                        GameDataCatalog.nameFor(item.dataId, category.key)?.let { name -> "$name ×${item.count}" }
                     }
                     "  ${category.key}: ${category.items.size} unique IDs • ${category.totalCount} total items" +
                         if (knownNames.isEmpty()) "" else "\n    " + knownNames.joinToString(", ")
