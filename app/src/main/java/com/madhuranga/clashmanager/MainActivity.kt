@@ -217,7 +217,7 @@ fun ClashManagerApp() {
     ) {
         Scaffold(containerColor = Page, bottomBar = {
             NavigationBar(containerColor = Panel) {
-                listOf("Dashboard", "Planner", "Attack", "Village", "Help").forEach { item ->
+                listOf("Dashboard", "Planner", "Attack", "Village", "Updates", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
                         onClick = { tab = item },
@@ -279,6 +279,29 @@ fun ClashManagerApp() {
                             onOpenPlanner = { tab = "Planner" },
                             onOpenHelp = { tab = "Help" }
                         )
+                    }
+                }
+                if (tab == "Updates") {
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("UPDATE CENTER", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                Text("Keep Clash Manager and its game reference data up to date.", color = Muted, fontSize = 13.sp)
+                                HorizontalDivider(color = Color(0xFF354052))
+                                Text("GAME DATA", color = Blue, fontWeight = FontWeight.Bold)
+                                Text(
+                                    installedGameDataPack?.let { "Installed data pack version: ${it.version}" }
+                                        ?: "No game data pack installed. The app is using its built-in reference catalogue.",
+                                    color = Color.White,
+                                    fontSize = 13.sp
+                                )
+                                Text("Game data packs are designed to update independently from the Android app. Downloading and activating them from this screen is not enabled yet.", color = Muted, fontSize = 12.sp)
+                                HorizontalDivider(color = Color(0xFF354052))
+                                Text("APP UPDATES", color = Blue, fontWeight = FontWeight.Bold)
+                                Text("In-app APK update checks and downloads are not active yet. A stable protected release signing key and published release manifest are required before updates can be safely offered.", color = Muted, fontSize = 12.sp)
+                                Text("Android will always ask you to confirm an APK installation. Clash Manager will never install an update silently.", color = Muted, fontSize = 12.sp)
+                            }
+                        }
                     }
                 }
                 if (tab == "Attack") {
