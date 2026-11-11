@@ -50,17 +50,27 @@ A saved tag currently personalises local records only. Upgrade task lists and vi
 
 Menu labels and export availability can change between game versions and devices. If the option is absent, do not install an unknown exporter or provide your account credentials to another service. Continue with manual planning.
 
-### 4.2 Import into Clash Manager
+### 4.2 Import a saved file into Clash Manager
 
 1. Save the correct Player Tag in the profile card first.
 2. Open the **Village** tab at the bottom.
-3. Read the import instructions.
-4. Tap **IMPORT VILLAGE JSON**.
-5. In Android's file picker, navigate to the saved export.
-6. Select the JSON file (the picker may also show text files).
-7. Wait for the result summary.
+3. Tap **IMPORT VILLAGE JSON**.
+4. In Android's file picker, navigate to the saved export.
+5. Select the JSON or text file and wait for the result summary.
 
-### 4.3 Import rules and results
+### 4.3 Import text copied to the clipboard
+
+Some game export flows copy JSON text to the clipboard instead of creating a file. In that case:
+
+1. Return to Clash Manager and open the **Village** tab.
+2. Find the **Paste village export JSON** text box.
+3. Tap **PASTE FROM CLIPBOARD** to insert the copied text. You can also tap the text box and paste manually.
+4. Check that the text appears in the box.
+5. Tap **IMPORT PASTED TEXT** and wait for the import result.
+
+If the clipboard is empty, return to the game and copy the export text again. The same JSON validation, 10 MB size limit, Player Tag check, and local profile storage rules apply to pasted text and files.
+
+### 4.4 Import rules and results
 
 - A Player Tag must be saved before the import button becomes active.
 - The file must be non-empty and valid JSON.
