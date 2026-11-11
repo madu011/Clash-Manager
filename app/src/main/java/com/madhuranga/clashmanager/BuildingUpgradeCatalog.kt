@@ -111,6 +111,40 @@ object BuildingUpgradeCatalog {
                 UpgradeStep(20, 3_000_000L, "Gold", 129_600L),
                 UpgradeStep(21, 4_000_000L, "Gold", 172_800L)
             )
+        ),
+        Building(
+            dataId = 1000013L,
+            name = "Mortar",
+            levels = listOf(
+                LevelRequirement(1, 3), LevelRequirement(2, 4),
+                LevelRequirement(3, 5), LevelRequirement(4, 6),
+                LevelRequirement(5, 7), LevelRequirement(6, 8),
+                LevelRequirement(7, 9), LevelRequirement(8, 10),
+                LevelRequirement(9, 11), LevelRequirement(10, 11),
+                LevelRequirement(11, 12), LevelRequirement(12, 12),
+                LevelRequirement(13, 13), LevelRequirement(14, 14),
+                LevelRequirement(15, 15), LevelRequirement(16, 16),
+                LevelRequirement(17, 17), LevelRequirement(18, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 25_000L, "Gold", 3_600L),
+                UpgradeStep(3, 90_000L, "Gold", 7_200L),
+                UpgradeStep(4, 180_000L, "Gold", 10_800L),
+                UpgradeStep(5, 300_000L, "Gold", 21_600L),
+                UpgradeStep(6, 500_000L, "Gold", 28_800L),
+                UpgradeStep(7, 900_000L, "Gold", 43_200L),
+                UpgradeStep(8, 1_200_000L, "Gold", 64_800L),
+                UpgradeStep(9, 1_600_000L, "Gold", 72_000L),
+                UpgradeStep(10, 1_800_000L, "Gold", 86_400L),
+                UpgradeStep(11, 2_300_000L, "Gold", 108_000L),
+                UpgradeStep(12, 2_400_000L, "Gold", 129_600L),
+                UpgradeStep(13, 2_800_000L, "Gold", 172_800L),
+                UpgradeStep(14, 4_300_000L, "Gold", 216_000L),
+                UpgradeStep(15, 5_000_000L, "Gold", 259_200L),
+                UpgradeStep(16, 7_000_000L, "Gold", 345_600L),
+                UpgradeStep(17, 13_000_000L, "Gold", 432_000L),
+                UpgradeStep(18, 21_000_000L, "Gold", 1_080_000L)
+            )
         )
     )
 
