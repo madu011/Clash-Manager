@@ -2,7 +2,9 @@ package com.madhuranga.clashmanager
 
 import android.os.Bundle
 import android.content.Intent
-import android.net.Uri\nimport java.io.ByteArrayOutputStream\nimport java.io.InputStream
+import android.net.Uri
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import android.os.Build
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -131,7 +133,7 @@ fun ClashManagerApp() {
     val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             runCatching {
-                val raw = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                val raw = context.contentResolver.openInputStream(uri)?.use { readUtf8Limited(it, 10 * 1024 * 1024) }
                     ?: error("Could not read the selected file")
                 require(raw.isNotBlank()) { "The selected file is empty" }
                 require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "File is too large. Maximum supported size is 10 MB" }
