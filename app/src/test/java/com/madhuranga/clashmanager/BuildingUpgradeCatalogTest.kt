@@ -19,6 +19,27 @@ class BuildingUpgradeCatalogTest {
         assertEquals(21, BuildingUpgradeCatalog.maximumLevelAt(1000009L, 15))
     }
 
+    @Test fun cannonNextUpgradeReturnsVerifiedGoldAndDuration() {
+        val step = BuildingUpgradeCatalog.nextUpgrade("Cannon", 10)
+        assertEquals(11, step?.targetLevel)
+        assertEquals(500_000L, step?.cost)
+        assertEquals("Gold", step?.resource)
+        assertEquals(16_200L, step?.durationSeconds)
+    }
+
+    @Test fun archerTowerFinalUpgradeReturnsVerifiedGoldAndDuration() {
+        val step = BuildingUpgradeCatalog.nextUpgrade(1000009L, 20)
+        assertEquals(21, step?.targetLevel)
+        assertEquals(4_000_000L, step?.cost)
+        assertEquals(172_800L, step?.durationSeconds)
+    }
+
+    @Test fun missingUpgradeDataAndUnknownBuildingsStayUnknown() {
+        assertNull(BuildingUpgradeCatalog.nextUpgrade("Cannon", 21))
+        assertNull(BuildingUpgradeCatalog.nextUpgrade("Unknown Building", 1))
+        assertNull(BuildingUpgradeCatalog.nextUpgrade(123456789L, 1))
+    }
+
     @Test fun unknownBuildingsAndInvalidTownHallLevelsStayUnknown() {
         assertNull(BuildingUpgradeCatalog.maximumLevelAt(123456789L, 10))
         assertNull(BuildingUpgradeCatalog.maximumLevelAt(1000008L, 0))
