@@ -21,7 +21,8 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var targetTownHall by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("3-star") }
     var notes by remember { mutableStateOf("") }
-    var prepared by remember { mutableStateOf(false) }\n    var validationErrors by remember { mutableStateOf(emptyList<String>()) }
+    var prepared by remember { mutableStateOf(false) }
+    var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
@@ -60,8 +61,21 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     Text(if (screenshotUri == null) "ATTACH BASE SCREENSHOT" else "CHANGE BASE SCREENSHOT")
                 }
                 Text(if (screenshotUri == null) "No target base image attached." else "Target base screenshot attached.", color = muted, fontSize = 11.sp)
-                Button(onClick = {\n                    validationErrors = AttackAnalysisValidator.validate(\n                        playerTag = playerTag,\n                        ownTownHallLevel = ownTownHall.toIntOrNull(),\n                        targetTownHallLevel = targetTownHall.toIntOrNull(),\n                        starGoal = goal.substringBefore("-").toIntOrNull() ?: 0,\n                        hasScreenshot = screenshotUri != null,\n                        notes = notes\n                    )\n                    prepared = validationErrors.isEmpty()\n                }, enabled = true, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))) {
+                Button(onClick = {
+                    validationErrors = AttackAnalysisValidator.validate(
+                        playerTag = playerTag,
+                        ownTownHallLevel = ownTownHall.toIntOrNull(),
+                        targetTownHallLevel = targetTownHall.toIntOrNull(),
+                        starGoal = goal.substringBefore("-").toIntOrNull() ?: 0,
+                        hasScreenshot = screenshotUri != null,
+                        notes = notes
+                    )
+                    prepared = validationErrors.isEmpty()
+                }, enabled = true, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))) {
                     Text("PREPARE ANALYSIS", fontWeight = FontWeight.Bold)
+                }
+                validationErrors.forEach { error ->
+                    Text("• $error", color = Color(0xFFFF9B8F), fontSize = 11.sp)
                 }
             }
         }
@@ -113,7 +127,11 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     }
                 }
                 Text("FULL ANALYSIS ROADMAP", color = gold, fontWeight = FontWeight.Bold)
-                Text("• Recognise base layout, compartments and visible defences\n• Match available troops, spells, heroes and siege machines to their levels\n• Suggest attack entry, funnel and deployment order\n• Estimate 1-star, 2-star and 3-star outcomes separately with confidence\n• Save plans and results for Clan War, CWL, Multiplayer and Friendly attacks", color = Color.White, fontSize = 12.sp)
+                Text("• Recognise base layout, compartments and visible defences
+• Match available troops, spells, heroes and siege machines to their levels
+• Suggest attack entry, funnel and deployment order
+• Estimate 1-star, 2-star and 3-star outcomes separately with confidence
+• Save plans and results for Clan War, CWL, Multiplayer and Friendly attacks", color = Color.White, fontSize = 12.sp)
                 Text("The analyzer must show unknown information clearly instead of guessing.", color = muted, fontSize = 11.sp)
             }
         }
