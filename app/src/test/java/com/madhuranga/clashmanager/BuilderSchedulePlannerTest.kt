@@ -82,4 +82,20 @@ class BuilderSchedulePlannerTest {
     }
 
 
+    @Test fun schedulesLongestIndependentUpgradeFirstToReduceFinishTime() {
+        val result = BuilderSchedulePlanner.create(
+            listOf(
+                BuilderSchedulePlanner.Target("Cannon", 1, 2),
+                BuilderSchedulePlanner.Target("Archer Tower", 1, 2),
+                BuilderSchedulePlanner.Target("Air Defense", 1, 2)
+            ),
+            builderCount = 2
+        )!!
+
+        assertEquals("Air Defense", result.upgrades.first().buildingName)
+        assertEquals(7_200L, result.elapsedSeconds)
+        assertEquals(1, result.upgrades.first().builderNumber)
+    }
+
+
 }
