@@ -60,4 +60,19 @@ class VillageAnalyzerTest {
 
         assertTrue(result.any { it.title == "Balance resource spending" })
     }
+    @Test
+    fun recommendsBuildingsOnlyWhenBelowExplicitTarget() {
+        val result = VillageAnalyzer.analyze(
+            VillageSnapshot(
+                playerTag = "#ABC",
+                townHallLevel = 12,
+                buildingLevels = mapOf("Archer Tower" to 10, "Cannon" to 15),
+                buildingTargetLevels = mapOf("Archer Tower" to 15, "Cannon" to 15)
+            )
+        )
+
+        assertTrue(result.any { it.title == "Plan Archer Tower upgrade" })
+        assertTrue(result.none { it.title == "Plan Cannon upgrade" })
+    }
+
 }
