@@ -152,11 +152,13 @@ fun ClashManagerApp() {
                 val collectionLines = parsedExport.sections.joinToString("\n") { section ->
                     "${section.key}: ${section.entryCount} ${section.shape}"
                 } + "\n" + parsedExport.categories.joinToString("\n") { category ->
-                    val knownNames = category.items.mapNotNull { item ->
-                        GameDataCatalog.nameFor(item.dataId, category.key)?.let { name -> "$name ×${item.count}" }
+                    val itemLabels = category.items.map { item ->
+                        val name = GameDataCatalog.nameFor(item.dataId, category.key) ?: "ID ${item.dataId}"
+                        val level = item.level?.let { " Lv.$it" } ?: ""
+                        "$name$level ×${item.count}"
                     }
                     "  ${category.key}: ${category.items.size} unique IDs • ${category.totalCount} total items" +
-                        if (knownNames.isEmpty()) "" else "\n    " + knownNames.joinToString(", ")
+                        if (itemLabels.isEmpty()) "" else "\n    " + itemLabels.joinToString(", ")
                 }
                 val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
                 prefs.edit()
