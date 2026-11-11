@@ -6,6 +6,16 @@
         android:label="Clash Manager"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
+        <receiver
+            android:name=".VillagePlannerWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/village_planner_widget_info" />
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true">
