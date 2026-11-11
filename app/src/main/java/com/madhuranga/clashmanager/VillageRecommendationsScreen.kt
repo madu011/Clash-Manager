@@ -59,13 +59,14 @@ fun VillageRecommendationsScreen(
     availableBuilders: String,
     onAvailableBuildersChange: (String) -> Unit,
     rushedBuildings: String,
-    onRushedBuildingsChange: (String) -> Unit
+    onRushedBuildingsChange: (String) -> Unit,
+    buildingTargets: String,
+    onBuildingTargetsChange: (String) -> Unit
 ) {
     var recommendations by remember(playerTag) {
         mutableStateOf(emptyList<UpgradeRecommendation>())
     }
     var validationMessage by remember(playerTag) { mutableStateOf("") }
-    var buildingTargets by remember(playerTag) { mutableStateOf("") }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -108,7 +109,7 @@ fun VillageRecommendationsScreen(
             )
             OutlinedTextField(
                 value = buildingTargets,
-                onValueChange = { buildingTargets = it.take(500) },
+                onValueChange = { onBuildingTargetsChange(it.take(500)) },
                 label = { Text("Building level targets") },
                 supportingText = { Text("Format: Archer Tower:10:15, Cannon:12:15 (name:current:target)") },
                 modifier = Modifier.fillMaxWidth()
