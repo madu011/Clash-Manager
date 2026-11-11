@@ -1,6 +1,9 @@
 package com.madhuranga.clashmanager
 
 import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -19,6 +22,15 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var goal by remember { mutableStateOf("3-star") }
     var notes by remember { mutableStateOf("") }
     var prepared by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
+    val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
+    var savedPlans by remember(historyKey) {
+        mutableStateOf(runCatching {
+            val array = JSONArray(prefs.getString(historyKey, "[]") ?: "[]")
+            (0 until array.length()).map { array.getJSONObject(it).toString() }
+        }.getOrDefault(emptyList()))
+    }
     val panel = Color(0xFF1A2230)
     val gold = Color(0xFFFFC857)
     val muted = Color(0xFF9AA8BA)
@@ -60,11 +72,46 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     Text("$mode • TH$ownTownHall vs TH$targetTownHall • Goal: $goal", color = Color.White)
                     Text("The image is selected and the attack scenario is recorded on screen. Automated image recognition, troop-level matching and probability calculation require the next analysis-engine/backend integration; this screen does not invent a troop army or success score.", color = muted, fontSize = 12.sp)
                     Text("Hidden traps, defending Clan Castle troops, unseen levels, timing and player execution prevent a guaranteed 100% result.", color = Color(0xFFFFD18A), fontSize = 12.sp)
+                    Button(onClick = {
+                        val item = JSONObject().apply {
+                            put("mode", mode); put("ownTownHall", ownTownHall)
+                            put("targetTownHall", targetTownHall); put("goal", goal)
+                            put("notes", notes); put("createdAt", System.currentTimeMillis())
+                            put("screenshotUri", screenshotUri?.toString() ?: "")
+                        }
+                        val updated = (listOf(item.toString()) + savedPlans).take(30)
+                        val array = JSONArray()
+                        updated.forEach { array.put(JSONObject(it)) }
+                        prefs.edit().putString(historyKey, array.toString()).apply()
+                        savedPlans = updated
+                    }, modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))
+                    ) { Text("SAVE ATTACK PLAN") }
                 }
             }
         }
         Card(colors = CardDefaults.cardColors(containerColor = panel), shape = RoundedCornerShape(18.dp)) {
             Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("SAVED ATTACK PLANS", color = gold, fontWeight = FontWeight.Bold)
+                if (savedPlans.isEmpty()) Text("No saved plans for this player profile yet.", color = muted, fontSize = 11.sp)
+                savedPlans.forEachIndexed { index, raw ->
+                    val plan = runCatching { JSONObject(raw) }.getOrNull()
+                    if (plan != null) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(Modifier.weight(1f)) {
+                                Text("${plan.optString("mode")} • ${plan.optString("goal")}", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                Text("TH${plan.optString("ownTownHall")} vs TH${plan.optString("targetTownHall")}", color = muted, fontSize = 11.sp)
+                            }
+                            TextButton(onClick = {
+                                val updated = savedPlans.filterIndexed { i, _ -> i != index }
+                                val array = JSONArray()
+                                updated.forEach { array.put(JSONObject(it)) }
+                                prefs.edit().putString(historyKey, array.toString()).apply()
+                                savedPlans = updated
+                            }) { Text("Delete") }
+                        }
+                    }
+                }
                 Text("FULL ANALYSIS ROADMAP", color = gold, fontWeight = FontWeight.Bold)
                 Text("• Recognise base layout, compartments and visible defences\n• Match available troops, spells, heroes and siege machines to their levels\n• Suggest attack entry, funnel and deployment order\n• Estimate 1-star, 2-star and 3-star outcomes separately with confidence\n• Save plans and results for Clan War, CWL, Multiplayer and Friendly attacks", color = Color.White, fontSize = 12.sp)
                 Text("The analyzer must show unknown information clearly instead of guessing.", color = muted, fontSize = 11.sp)
