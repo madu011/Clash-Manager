@@ -8,8 +8,8 @@ Users should be able to check, download, and install app updates from inside Cla
 ### 1. Android application release
 - Publish a versioned APK as a GitHub Release.
 - Publish a small JSON manifest with version code/name, minimum supported version, APK HTTPS URL, and SHA-256 checksum.
-- App checks the manifest on launch and from Settings; use a notification only when a newer compatible release exists.
-- Download to app-controlled storage, verify SHA-256, then open Android's package installer using a content URI.
+- The Update Center fetches the manifest when the user taps Check for updates. If a newer version is found, the app posts one notification per version when Android notification permission is available. Tapping it opens Clash Manager; the user can then review the Updates tab.
+- Download to app-controlled cache storage, follow only approved HTTPS GitHub Release asset redirects, verify SHA-256, then open Android's package installer through a FileProvider content URI.
 - Android must show the install confirmation. Clash Manager must never silently install an APK.
 - Android package signature matching is mandatory. Every release must be signed with the same stable private release keystore. Never distribute an update signed with a random CI debug key.
 - Store the signing keystore only in protected GitHub Actions secrets. Never commit it or place it in the APK/repository.
@@ -23,10 +23,14 @@ Users should be able to check, download, and install app updates from inside Cla
 - Show pack version, last checked time, and an in-app changelog.
 - A game content update must not require a new APK unless parser/schema or UI code itself changes.
 
-## Current implementation foundation
-- `UpdateManifest` parses and validates app/data versions, HTTPS URLs, allowed repository hosts/paths, and SHA-256 values.
-- Unit tests cover valid manifests, untrusted URLs, non-HTTPS APK links, and malformed checksums.
-- This is validation groundwork, not yet a working downloader, notification, installer, or remote data-pack loader.
+## Current implementation status
+- `UpdateManifest` validates app/data versions, HTTPS URLs, approved repository hosts/paths, and SHA-256 values.
+- `UpdateManifestClient` fetches `updates/manifest.json` from the repository's `main` branch.
+- `GameDataPackParser` validates schema version 1, item IDs, names, bases, categories, duplicates and optional maximum levels. `GameDataPackInstaller` downloads a bounded file, verifies SHA-256, and keeps a previous known-good copy.
+- The in-app catalog uses exact matching data-pack entries as overrides; unknown IDs remain unknown.
+- `ApkUpdateInstaller` downloads a bounded APK, follows only approved GitHub release-asset HTTPS redirects, verifies SHA-256, and hands the file to Android through FileProvider. Android's package installer handles signature/version checks and user confirmation.
+- Update Center supports manual manifest checks and data-pack/APK download actions. A newer app version triggers a once-per-version notification when notification permission is granted.
+- The current repository does not yet contain a published `updates/manifest.json`, a verified game data pack, or a signed public release. Therefore end-to-end public updates are not active. CI currently builds a debug APK; it is not suitable as a public update release.
 
 ## Release prerequisites
 1. Create and securely back up a stable Android release keystore.
@@ -44,4 +48,4 @@ The downloader accepts a JSON object with:
 - `source`: source attribution and license metadata
 - `items`: array of game data entries
 
-Each item must be added only from a verified source. Unknown or missing levels and values must remain unknown; do not generate guessed values. The currently implemented installer verifies and stores the pack but does not yet connect its contents to the in-app catalog.
+Each item must be added only from a verified source. Unknown or missing levels and values must remain unknown; do not generate guessed values. The parser and installer are connected to the in-app catalog. Only entries supplied in a valid, verified pack can override built-in catalog names; upgrade costs, durations and unlocks still require independently verified records.
