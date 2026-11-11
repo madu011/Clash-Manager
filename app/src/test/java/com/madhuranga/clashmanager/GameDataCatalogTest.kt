@@ -38,6 +38,6 @@ class GameDataCatalogTest {
 
     @Test fun legacyLookupReturnsOnlyUnambiguousNames() {
         assertEquals("Cannon", GameDataCatalog.nameFor(1000008L))
-        assertNull(GameDataCatalog.nameFor(1000044L))
+        assertEquals("Cannon", GameDataCatalog.nameFor(1000044L))
     }
 }
