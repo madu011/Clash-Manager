@@ -377,6 +377,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 contentPadding = PaddingValues(18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                if (tab == "Dashboard") {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -405,6 +406,8 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         }
                     }
                 }
+                }
+                if (tab == "Village") {
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
@@ -450,6 +453,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Color(0xFFCFD6E1), fontSize = 10.sp)
                         }
                     }
+                }
                 }
                 if (tab == "Dashboard") {
                     item {
@@ -855,37 +859,53 @@ private fun DashboardHeroCard(
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(11.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text("CLASH MANAGER", color = Color(0xFFFFD36E), fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
-                        Text("WELCOME, CHIEF!", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
-                        Text("Your village command center", color = Color(0xFFE0C99E), fontSize = 11.sp)
+                        Text("WELCOME, CHIEF!", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                        Text("Your kingdom is waiting. Build it stronger!", color = Color(0xFFFFE0A0), fontSize = 11.sp)
                     }
-                    Surface(
-                        color = Color(0xFF8C5B24),
-                        shape = RoundedCornerShape(18.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD36E))
-                    ) {
-                        Text("🏰", modifier = Modifier.padding(horizontal = 13.dp, vertical = 11.dp), fontSize = 34.sp)
-                    }
+                    Text("🏹", fontSize = 34.sp)
                 }
-                HorizontalDivider(color = Color(0x77D5A34B), thickness = 1.dp)
+                Box(
+                    Modifier.fillMaxWidth().height(116.dp)
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(Color(0xFF76A9C8), Color(0xFF344D61), Color(0xFF243329))
+                            ),
+                            RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    Row(
+                        Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text("🌲  🏰", fontSize = 39.sp)
+                        Text("🛡️", fontSize = 29.sp)
+                        Text("🏹  🌳", fontSize = 38.sp)
+                    }
+                    Text(
+                        "PLAN  •  ANALYZE  •  IMPROVE",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     VillageStatTile("TOWN HALL", townHallLevel.ifBlank { "—" }, "🏰", Modifier.weight(1f))
                     VillageStatTile("BUILDERS", builders.ifBlank { "—" }, "🛠️", Modifier.weight(1f))
                     VillageStatTile("ACTIVE", activeUpgrades.toString(), "⚒️", Modifier.weight(1f))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        if (playerTag.isBlank()) "PLAYER PROFILE NOT SET" else playerTag,
-                        color = Color(0xFFD9E0EA),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text("VIEW VILLAGE  ›", color = Color(0xFFFFD36E), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(if (playerTag.isBlank()) "PLAYER PROFILE NOT SET" else playerTag,
+                        color = Color(0xFFD9E0EA), fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f))
+                    TextButton(onClick = onOpenVillage) {
+                        Text("MY VILLAGE  ›", color = Color(0xFFFFD36E), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    }
                 }
             }
         }
@@ -932,17 +952,25 @@ private fun GameShortcut(
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF8B7047)),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize().background(
+        Box(
+            Modifier.fillMaxSize().background(
                 androidx.compose.ui.graphics.Brush.verticalGradient(
-                    listOf(Color(0xFF485366), Color(0xFF202735))
+                    listOf(Color(0xFF68778A), Color(0xFF394557), Color(0xFF1B2431))
                 )
-            ).padding(7.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            ).padding(7.dp)
         ) {
-            Text(icon, fontSize = 25.sp)
-            Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Column(
+                Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(icon, fontSize = 29.sp)
+                Spacer(Modifier.height(3.dp))
+                Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+            }
+            androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter)) {
+                drawRect(Color(0x99F5D28A))
+            }
         }
     }
 }
