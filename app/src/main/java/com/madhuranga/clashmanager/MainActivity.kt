@@ -1,6 +1,15 @@
 package com.madhuranga.clashmanager
 
 import android.os.Bundle
+import android.os.Build
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -58,6 +67,12 @@ class MainActivity : ComponentActivity() {
 fun ClashManagerApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     var tasks by remember {
         mutableStateOf(loadTasks(prefs.getString("tasks", "[]") ?: "[]"))
     }
@@ -131,6 +146,7 @@ fun ClashManagerApp() {
                 val builders = tasks.filter { it.category == "Builder" }
                 items(builders, key = { it.id }) { task ->
                     UpgradeCard(task, now) {
+                        WorkManager.getInstance(context).cancelUniqueWork("upgrade-${task.id}")
                         tasks = tasks.filterNot { it.id == task.id }
                     }
                 }
@@ -138,7 +154,10 @@ fun ClashManagerApp() {
                     Text("LABORATORY", color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                 }
                 items(tasks.filter { it.category == "Laboratory" }, key = { it.id }) { task ->
-                    UpgradeCard(task, now) { tasks = tasks.filterNot { it.id == task.id } }
+                    UpgradeCard(task, now) {
+                        WorkManager.getInstance(context).cancelUniqueWork("upgrade-${task.id}")
+                        tasks = tasks.filterNot { it.id == task.id }
+                    }
                 }
                 item {
                     Text("QUICK PLANNER", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
@@ -156,14 +175,18 @@ fun ClashManagerApp() {
             onDismiss = { showAdd = false },
             onAdd = { title, level, hours, category ->
                 val duration = hours * 60L * 60L * 1000L
-                tasks = tasks + UpgradeTask(
-                    id = System.currentTimeMillis(),
-                    title = title,
-                    fromLevel = level,
-                    toLevel = level + 1,
-                    startedAt = System.currentTimeMillis(),
-                    durationMs = duration,
-                    category = category
+                val taskId = System.currentTimeMillis()
+                val task = UpgradeTask(
+                    id = taskId, title = title, fromLevel = level, toLevel = level + 1,
+                    startedAt = taskId, durationMs = duration, category = category
+                )
+                tasks = tasks + task
+                val reminder = OneTimeWorkRequestBuilder<UpgradeReminderWorker>()
+                    .setInitialDelay(duration, TimeUnit.MILLISECONDS)
+                    .setInputData(Data.Builder().putLong("task_id", taskId).putString("task_title", title).build())
+                    .build()
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "upgrade-$taskId", ExistingWorkPolicy.REPLACE, reminder
                 )
                 showAdd = false
             }
