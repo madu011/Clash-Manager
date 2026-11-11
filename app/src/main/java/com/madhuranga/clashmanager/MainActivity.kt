@@ -74,10 +74,18 @@ fun ClashManagerApp() {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
-    var tasks by remember {
-        mutableStateOf(loadTasks(prefs.getString("tasks", "[]") ?: "[]"))
-    }
     var playerTag by remember { mutableStateOf(prefs.getString("player_tag", "") ?: "") }
+    val taskStorageKey = "tasks_${playerTag.ifBlank { "unselected" }}"
+    var tasks by remember(taskStorageKey) {
+        mutableStateOf(
+            loadTasks(
+                prefs.getString(
+                    taskStorageKey,
+                    if (playerTag.isBlank()) prefs.getString("tasks", "[]") ?: "[]" else "[]"
+                ) ?: "[]"
+            )
+        )
+    }
     var tagInput by remember { mutableStateOf(playerTag) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
@@ -124,8 +132,8 @@ fun ClashManagerApp() {
             delay(1000)
         }
     }
-    LaunchedEffect(tasks) {
-        prefs.edit().putString("tasks", saveTasks(tasks)).apply()
+    LaunchedEffect(taskStorageKey, tasks) {
+        prefs.edit().putString(taskStorageKey, saveTasks(tasks)).apply()
     }
     LaunchedEffect(thLevel, freeBuilders, rushedBuildings) {
         prefs.edit()
@@ -325,7 +333,7 @@ private fun HelpGuide() {
         HelpSection("6. Dashboard and upgrade cards", "Dashboard shows the builder task list and laboratory task list. Tap the + button to add an upgrade. Enter a building, troop or research name, its current level, the duration in hours, and choose Builder or Laboratory. Tap Add task. The card shows the level transition, remaining time and estimated progress. Tap Mark done when the task is finished to remove it from the active list.")
         HelpSection("7. Planner tab", "The Planner tab currently shares the manual upgrade tracker view. Add tasks with the + button and use the Builder and Laboratory categories to keep construction and research separate. Enter the duration remaining from the moment you add the task; the countdown starts when you tap Add task. If the real in-game timer differs, remove the task and add it again with the corrected duration.")
         HelpSection("8. Reminders and notifications", "The app schedules a reminder for the duration entered when a task is created. On Android 13 and newer, allow notification permission when asked so reminders can be shown. Check Android Settings → Apps → Clash Manager → Notifications if alerts are disabled. Battery saver or device restrictions may delay notifications.")
-        HelpSection("9. Saving and privacy", "Player Tag, upgrade tasks and imported JSON are stored locally in this app's private device preferences. They are not currently synced to a server or another phone. Uninstalling the app or clearing its storage may remove this local data. Keep your original JSON export separately. Do not enter passwords, Supercell ID codes or other account secrets.")
+        HelpSection("9. Saving and privacy", "Player Tag, upgrade tasks and imported JSON are stored locally in this app's private device preferences. Upgrade task lists and imported exports are kept separately for each saved Player Tag, so switching profiles loads that profile's own tasks. They are not currently synced to a server or another phone. Uninstalling the app or clearing its storage may remove this local data. Keep your original JSON export separately. Do not enter passwords, Supercell ID codes or other account secrets.")
         HelpSection("10. Online profile sync and analysis", "The online profile panel is a future integration placeholder. Live profile sync and automatic recommendations are not connected in this version. The official game API is read-only and does not provide every live village detail, such as all building positions or active builder countdowns. The app must label unavailable information rather than guess.")
         HelpSection("11. Common problems", "Player Tag not accepted: check the tag from your in-game profile and remove spaces. Import button disabled: save a Player Tag first. Import failed: make sure the file is a real, non-empty JSON export and is no larger than 10 MB. No reminder: check notification permission and device battery restrictions. Wrong countdown: recreate the task with the correct remaining hours.")
         HelpSection("12. Current feature status", "Available now: local Player Tag profile, manual Builder and Laboratory task tracking, countdowns, progress display, local saving, reminder scheduling foundation, and JSON file validation/structure preview. Not available yet: live API sync, automatic village parsing, rush detection from imported data, resource calculations, AI upgrade recommendations, and base-layout generation.")
