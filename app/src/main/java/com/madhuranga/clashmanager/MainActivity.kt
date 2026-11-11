@@ -267,8 +267,8 @@ fun ClashManagerApp() {
                         VillageSetupGuide(
                             hasPlayerTag = playerTag.isNotBlank(),
                             hasVillageExport = exportSummary.isNotBlank(),
-                            hasTownHall = thLevel.toIntOrNull() in 1..18,
-                            hasBuilderCount = freeBuilders.toIntOrNull() in 1..6,
+                            hasTownHall = (thLevel.toIntOrNull() ?: 0) in 1..18,
+                            hasBuilderCount = (freeBuilders.toIntOrNull() ?: 0) in 1..6,
                             hasUpgradeTargets = buildingTargets.isNotBlank(),
                             hasAttackScreenshot = attackScreenshot != null
                         )
@@ -423,6 +423,55 @@ item {
                 showAdd = false
             }
         )
+    }
+}
+
+@Composable
+private fun VillageSetupGuide(
+    hasPlayerTag: Boolean,
+    hasVillageExport: Boolean,
+    hasTownHall: Boolean,
+    hasBuilderCount: Boolean,
+    hasUpgradeTargets: Boolean,
+    hasAttackScreenshot: Boolean
+) {
+    val completed = listOf(hasPlayerTag, hasVillageExport, hasTownHall, hasBuilderCount, hasUpgradeTargets).count { it }
+    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("COMPLETE YOUR VILLAGE SETUP", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                Text("Add the information below to unlock the most useful planning and analysis this version supports.", color = Muted, fontSize = 12.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("$completed / 5 core steps complete", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text("${completed * 20}%", color = Gold, fontWeight = FontWeight.Bold)
+                }
+                LinearProgressIndicator(
+                    progress = { completed / 5f },
+                    modifier = Modifier.fillMaxWidth().height(7.dp),
+                    color = Gold,
+                    trackColor = Color(0xFF354052)
+                )
+                SetupGuideRow("1. Save your Player Tag", hasPlayerTag, "Enter it in the profile card on Dashboard.")
+                SetupGuideRow("2. Import your village JSON", hasVillageExport, "Use Village Data Import if your game provides an export.")
+                SetupGuideRow("3. Enter Town Hall level", hasTownHall, "Open Village Planner and enter your current Town Hall.")
+                SetupGuideRow("4. Enter available builders", hasBuilderCount, "Set how many builders are currently available.")
+                SetupGuideRow("5. Add upgrade target levels", hasUpgradeTargets, "Enter the buildings and target levels you want to plan.")
+                Divider(color = Color(0xFF354052))
+                SetupGuideRow("Optional: add an attack screenshot", hasAttackScreenshot, "Open Attack tab and attach a clear base screenshot.")
+                Text("Only data actually present in your JSON or entered by you can be used. Missing values stay unknown; Clash Manager does not need your Supercell ID password or verification codes.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SetupGuideRow(title: String, complete: Boolean, detail: String) {
+    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+        Text(if (complete) "✓" else "○", color = if (complete) Color(0xFF8DE0A8) else Gold, fontWeight = FontWeight.Bold)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(if (complete) "Saved or detected on this device" else detail, color = Muted, fontSize = 11.sp)
+        }
     }
 }
 
