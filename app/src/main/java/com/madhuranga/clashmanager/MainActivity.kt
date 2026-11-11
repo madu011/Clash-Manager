@@ -103,6 +103,8 @@ fun ClashManagerApp() {
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportDetails by remember { mutableStateOf(prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
+    var attackScreenshot by remember { mutableStateOf<Uri?>(null) }
+    val pickAttackScreenshot = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> attackScreenshot = uri }
     LaunchedEffect(playerTag) {
         exportSummary = prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: ""
         exportDetails = prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: ""
@@ -160,7 +162,7 @@ fun ClashManagerApp() {
     ) {
         Scaffold(containerColor = Page, bottomBar = {
             NavigationBar(containerColor = Panel) {
-                listOf("Dashboard", "Planner", "Village", "Help").forEach { item ->
+                listOf("Dashboard", "Planner", "Attack", "Village", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
                         onClick = { tab = item },
@@ -212,6 +214,9 @@ fun ClashManagerApp() {
                             Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Muted, fontSize = 11.sp)
                         }
                     }
+                }
+                if (tab == "Attack") {
+                    item { AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch("image/*") } }
                 }
                 if (tab == "Village") {
                     item {
@@ -265,7 +270,7 @@ fun ClashManagerApp() {
                 if (tab == "Help") {
                     item { HelpGuide() }
                 }
-                if (tab != "Village" && tab != "Help") {
+                if (tab != "Village" && tab != "Help" && tab != "Attack") {
 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
