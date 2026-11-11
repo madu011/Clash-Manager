@@ -96,8 +96,11 @@ fun ClashManagerApp() {
             runCatching {
                 val raw = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                     ?: error("Could not read the selected file")
-                val json = JSONObject(raw)
-                val summary = summarizeVillageExport(json)
+                val summary = if (raw.trimStart().startsWith("[")) {
+                    summarizeVillageExport(JSONArray(raw))
+                } else {
+                    summarizeVillageExport(JSONObject(raw))
+                }
                 prefs.edit().putString("village_export_json_${playerTag.ifBlank { "unselected" }}", raw).putString("village_export_summary_${playerTag.ifBlank { "unselected" }}", summary).apply()
                 exportSummary = summary
                 exportError = ""
@@ -404,4 +407,12 @@ private fun summarizeVillageExport(root: JSONObject): String {
     val details = counts.take(8).joinToString(" • ")
     return if (details.isBlank()) "Valid JSON imported • root fields: ${keys.take(12).joinToString(", ")}"
     else "Root fields: ${keys.take(12).joinToString(", ")} • $details"
+}
+
+
+private fun summarizeVillageExport(root: JSONArray): String {
+    val firstObject = (0 until root.length()).firstNotNullOfOrNull { index -> root.optJSONObject(index) }
+    val fields = firstObject?.keys()?.asSequence()?.toList().orEmpty()
+    return "Valid JSON array imported • ${root.length()} entries" +
+        if (fields.isEmpty()) "" else " • first entry fields: ${fields.take(12).joinToString(", ")}"
 }
