@@ -73,6 +73,16 @@ class MainActivity : ComponentActivity() {
 fun ClashManagerApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
+    val installedGameDataPack = remember {
+        runCatching {
+            val packFile = java.io.File(context.filesDir, "game-data/active-pack.json")
+            if (packFile.isFile) {
+                val rawPack = packFile.readText(Charsets.UTF_8)
+                val version = JSONObject(rawPack).getInt("dataPackVersion")
+                GameDataPackParser.parse(rawPack, version)
+            } else null
+        }.getOrNull()
+    }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -156,7 +166,7 @@ fun ClashManagerApp() {
                     "${section.key}: ${section.entryCount} ${section.shape}"
                 } + "\n" + parsedExport.categories.joinToString("\n") { category ->
                     val itemLabels = category.items.map { item ->
-                        val name = GameDataCatalog.nameFor(item.dataId, category.key) ?: "ID ${item.dataId}"
+                        val name = GameDataCatalog.nameFor(item.dataId, category.key, installedGameDataPack) ?: "ID ${item.dataId}"
                         val level = item.level?.let { " Lv.$it" } ?: ""
                         "$name$level ×${item.count}"
                     }
