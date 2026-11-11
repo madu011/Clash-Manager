@@ -5,29 +5,29 @@ package com.madhuranga.clashmanager
  * Unknown IDs intentionally remain unresolved.
  */
 object GameDataCatalog {
-    private data class Entry(val dataId: Long, val name: String, val base: String)
+    private data class Entry(val dataId: Long, val name: String, val base: String, val category: String)
 
     private val entries = listOf(
-        Entry(1000002L, "Elixir Collector", "home"),
-        Entry(1000004L, "Gold Mine", "home"),
-        Entry(1000005L, "Gold Storage", "home"),
-        Entry(1000008L, "Cannon", "home"),
-        Entry(1000009L, "Archer Tower", "home"),
-        Entry(1000013L, "Mortar", "home"),
-        Entry(26000000L, "Lightning Spell", "home"),
-        Entry(28000000L, "Barbarian King", "home"),
-        Entry(28000001L, "Archer Queen", "home"),
-        Entry(4000000L, "Barbarian", "home"),
-        Entry(4000001L, "Archer", "home"),
-        Entry(4000002L, "Goblin", "home"),
-        Entry(4000003L, "Giant", "home"),
-        Entry(4000008L, "Dragon", "home"),
-        Entry(1000037L, "Gold Mine", "builder"),
-        Entry(1000044L, "Cannon", "builder"),
-        Entry(1000048L, "Archer Tower", "builder"),
-        Entry(28000003L, "Battle Machine", "builder"),
-        Entry(28000005L, "Battle Copter", "builder"),
-        Entry(4000032L, "Sneaky Archer", "builder")
+        Entry(1000002L, "Elixir Collector", "home", "buildings"),
+        Entry(1000004L, "Gold Mine", "home", "buildings"),
+        Entry(1000005L, "Gold Storage", "home", "buildings"),
+        Entry(1000008L, "Cannon", "home", "buildings"),
+        Entry(1000009L, "Archer Tower", "home", "buildings"),
+        Entry(1000013L, "Mortar", "home", "buildings"),
+        Entry(26000000L, "Lightning Spell", "home", "spells"),
+        Entry(28000000L, "Barbarian King", "home", "heroes"),
+        Entry(28000001L, "Archer Queen", "home", "heroes"),
+        Entry(4000000L, "Barbarian", "home", "units"),
+        Entry(4000001L, "Archer", "home", "units"),
+        Entry(4000002L, "Goblin", "home", "units"),
+        Entry(4000003L, "Giant", "home", "units"),
+        Entry(4000008L, "Dragon", "home", "units"),
+        Entry(1000037L, "Gold Mine", "builder", "buildings2"),
+        Entry(1000044L, "Cannon", "builder", "buildings2"),
+        Entry(1000048L, "Archer Tower", "builder", "buildings2"),
+        Entry(28000003L, "Battle Machine", "builder", "heroes2"),
+        Entry(28000005L, "Battle Copter", "builder", "heroes2"),
+        Entry(4000032L, "Sneaky Archer", "builder", "units2")
     )
 
     private val homeCollections = setOf(
@@ -47,7 +47,10 @@ object GameDataCatalog {
         val remote = pack?.items?.firstOrNull {
             it.dataId == dataId && it.base == base && it.category == collectionKey
         }?.name
-        return remote ?: entries.firstOrNull { it.dataId == dataId && it.base == base }?.name
+        if (remote != null) return remote
+        return entries.firstOrNull {
+            it.dataId == dataId && it.base == base && it.category == collectionKey
+        }?.name
     }
 
     fun nameFor(dataId: Long): String? =
