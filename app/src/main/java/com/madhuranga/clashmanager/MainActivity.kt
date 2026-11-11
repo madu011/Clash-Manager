@@ -81,6 +81,9 @@ fun ClashManagerApp() {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf("Dashboard") }
+    var thLevel by remember { mutableStateOf("10") }
+    var freeBuilders by remember { mutableStateOf("1") }
+    var rushedBuildings by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -153,7 +156,35 @@ fun ClashManagerApp() {
                         }
                     }
                 }
-                item {
+                if (tab == "Village") {
+                    item {
+                        val snapshot = VillageSnapshot(
+                            playerTag = playerTag,
+                            townHallLevel = thLevel.toIntOrNull() ?: 1,
+                            availableBuilders = freeBuilders.toIntOrNull() ?: 0,
+                            rushedBuildings = rushedBuildings.split(",").map { it.trim() }.filter { it.isNotBlank() }
+                        )
+                        val suggestions = VillageAnalyzer.analyze(snapshot)
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text("RUSH RECOVERY ANALYZER", color = Gold, fontWeight = FontWeight.Bold)
+                                Text("Offline checklist based on the details you enter. Not live game data.", color = Muted, fontSize = 12.sp)
+                                OutlinedTextField(thLevel, { thLevel = it.filter(Char::isDigit).take(2) }, label = { Text("Town Hall level") }, singleLine = true)
+                                OutlinedTextField(freeBuilders, { freeBuilders = it.filter(Char::isDigit).take(1) }, label = { Text("Available builders") }, singleLine = true)
+                                OutlinedTextField(rushedBuildings, { rushedBuildings = it }, label = { Text("Rushed buildings (comma separated)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                                Text("RECOMMENDED NEXT STEPS", color = Blue, fontWeight = FontWeight.Bold)
+                                suggestions.forEachIndexed { index, item ->
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text("${index + 1}. ${item.title}", color = Color.White, fontWeight = FontWeight.SemiBold)
+                                        Text(item.reason, color = Muted, fontSize = 11.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (tab != "Village") {
+item {
                     Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("BUILDER LOG", color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
@@ -184,6 +215,7 @@ fun ClashManagerApp() {
                 item {
                     Text("QUICK PLANNER", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                     Text("Add your current upgrades to track countdowns. Recommendations will be enabled after your village data is connected.", color = Muted, fontSize = 13.sp)
+                }
                 }
             }
         }
