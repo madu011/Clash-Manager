@@ -114,7 +114,6 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
             result.onSuccess { manifest ->
                 latestManifest = manifest
                 if (isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, manifest.minimumSupportedVersionCode)) {
-                    tab = "Updates"
                     apkUpdateStatus = "A required app update is available. Update Clash Manager to continue using the latest supported version."
                 }
                 updateCheckStatus = "Release manifest found • App version ${manifest.latestVersionName} • Data pack ${manifest.dataPackVersion}"
@@ -199,6 +198,12 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf(if (openUpdatesOnStart) "Updates" else "Dashboard") }
+    LaunchedEffect(latestManifest) {
+        val manifest = latestManifest
+        if (manifest != null && isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, manifest.minimumSupportedVersionCode)) {
+            tab = "Updates"
+        }
+    }
     val profileKey = playerTag.ifBlank { "unselected" }
     var thLevel by remember(profileKey) {
         mutableStateOf(prefs.getString("town_hall_level_$profileKey", "") ?: "")
