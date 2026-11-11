@@ -108,6 +108,7 @@ fun ClashManagerApp() {
     }
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportDetails by remember { mutableStateOf(prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
+    var exportCollections by remember(profileKey) { mutableStateOf(prefs.getString("village_export_collections_$profileKey", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
     var attackScreenshot by remember(profileKey) {
         mutableStateOf(prefs.getString("attack_screenshot_uri_$profileKey", null)?.let(Uri::parse))
@@ -131,6 +132,7 @@ fun ClashManagerApp() {
     LaunchedEffect(playerTag) {
         exportSummary = prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: ""
         exportDetails = prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: ""
+        exportCollections = prefs.getString("village_export_collections_${playerTag.ifBlank { "unselected" }}", "") ?: ""
         exportError = ""
     }
     val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -141,7 +143,10 @@ fun ClashManagerApp() {
                 require(raw.isNotBlank()) { "The selected file is empty" }
                 require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "File is too large. Maximum supported size is 10 MB" }
                 val parsedExport = VillageExportParser.parse(raw)
-                val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary() else {
+                val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
+                val collectionLines = parsedExport.categories.joinToString("\n") { category ->
+                    "${category.key}: ${category.items.size} unique entries • ${category.totalCount} total"
+                } else {
                     summarizeVillageExport(JSONObject(raw))
                 }
                 val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
@@ -149,9 +154,11 @@ fun ClashManagerApp() {
                     .putString("village_export_json_${playerTag.ifBlank { "unselected" }}", raw)
                     .putString("village_export_summary_${playerTag.ifBlank { "unselected" }}", summary)
                     .putString("village_export_details_${playerTag.ifBlank { "unselected" }}", details)
+                    .putString("village_export_collections_${playerTag.ifBlank { "unselected" }}", collectionLines)
                     .apply()
                 exportSummary = summary
                 exportDetails = details
+                exportCollections = collectionLines
                 exportError = ""
             }.onFailure { exportError = "Import failed: ${it.message ?: "Invalid JSON file"}" }
         }
@@ -285,6 +292,11 @@ fun ClashManagerApp() {
                                             Text("EXPORT IMPORTED", color = Color(0xFF8DE0A8), fontWeight = FontWeight.Bold)
                                             if (exportDetails.isNotBlank()) Text(exportDetails, color = Muted, fontSize = 10.sp)
                                             Text(exportSummary, color = Color.White, fontSize = 12.sp)
+                                            if (exportCollections.isNotBlank()) {
+                                                Divider(color = Color(0xFF315545))
+                                                Text("DETECTED VILLAGE DATA", color = Gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                                exportCollections.lines().forEach { line -> Text(line, color = Color.White, fontSize = 11.sp) }
+                                            }
                                         }
                                     }
                                 }
