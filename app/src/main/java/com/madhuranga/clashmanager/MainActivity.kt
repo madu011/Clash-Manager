@@ -92,6 +92,8 @@ fun ClashManagerApp() {
     var isCheckingUpdates by remember { mutableStateOf(false) }
     var isInstallingDataPack by remember { mutableStateOf(false) }
     var dataPackStatus by remember { mutableStateOf("") }
+    var isDownloadingApk by remember { mutableStateOf(false) }
+    var apkUpdateStatus by remember { mutableStateOf("") }
     fun checkForUpdates() {
         if (isCheckingUpdates) return
         isCheckingUpdates = true
@@ -129,6 +131,29 @@ fun ClashManagerApp() {
                 dataPackStatus = error.message ?: "Game data installation failed"
             }
             isInstallingDataPack = false
+        }
+    }
+    fun downloadLatestApk() {
+        val manifest = latestManifest ?: return
+        if (isDownloadingApk) return
+        val installer = ApkUpdateInstaller(context)
+        if (!installer.canRequestInstallPackages()) {
+            apkUpdateStatus = "Allow Clash Manager to install updates in Android settings, then return and tap the button again."
+            installer.openInstallPermissionSettings()
+            return
+        }
+        isDownloadingApk = true
+        apkUpdateStatus = "Downloading and verifying APK..."
+        updateScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                installer.downloadAndLaunch(manifest)
+            }
+            result.onSuccess {
+                apkUpdateStatus = "Verified APK sent to Android installer. Confirm the update there."
+            }.onFailure { error ->
+                apkUpdateStatus = error.message ?: "APK update failed"
+            }
+            isDownloadingApk = false
         }
     }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -359,8 +384,17 @@ fun ClashManagerApp() {
                                 if (dataPackStatus.isNotBlank()) Text(dataPackStatus, color = Blue, fontSize = 12.sp)
                                 HorizontalDivider(color = Color(0xFF354052))
                                 Text("APP UPDATES", color = Blue, fontWeight = FontWeight.Bold)
-                                Text("The app can now check the trusted release manifest. APK downloading and installation are not enabled yet; a protected release signing key and a published, verified APK are still required.", color = Muted, fontSize = 12.sp)
-                                Text("Android will always ask you to confirm an APK installation. Clash Manager will never install an update silently.", color = Muted, fontSize = 12.sp)
+                                if (latestManifest != null && latestManifest!!.latestVersionCode > BuildConfig.VERSION_CODE) {
+                                    Button(
+                                        onClick = { downloadLatestApk() },
+                                        enabled = !isDownloadingApk,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { Text(if (isDownloadingApk) "Downloading APK..." else "Download and install app update") }
+                                } else if (latestManifest != null) {
+                                    Text("This app is up to date.", color = Blue, fontSize = 12.sp)
+                                }
+                                if (apkUpdateStatus.isNotBlank()) Text(apkUpdateStatus, color = Muted, fontSize = 12.sp)
+                                Text("APK updates use a verified SHA-256 checksum and Android's package installer. A matching release signing key is required; Android will always ask you to confirm installation.", color = Muted, fontSize = 12.sp)
                             }
                         }
                     }
