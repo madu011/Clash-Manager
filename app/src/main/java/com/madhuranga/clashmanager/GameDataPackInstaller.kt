@@ -64,14 +64,8 @@ class GameDataPackInstaller(
                 "Game data checksum does not match"
             }
 
-            val json = JSONObject(tempFile.readText(Charsets.UTF_8))
-            require(json.getInt("schemaVersion") == 1) { "Unsupported game data schema" }
-            require(json.getInt("dataPackVersion") == manifest.dataPackVersion) {
-                "Game data version does not match the update manifest"
-            }
-            require(json.getJSONArray("items").length() <= 50_000) {
-                "Game data pack contains too many items"
-            }
+            val rawPack = tempFile.readText(Charsets.UTF_8)
+            GameDataPackParser.parse(rawPack, manifest.dataPackVersion)
 
             if (activeFile.exists()) {
                 val current = runCatching {
