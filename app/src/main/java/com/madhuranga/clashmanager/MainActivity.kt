@@ -246,44 +246,51 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
         exportCollections = prefs.getString("village_export_collections_${playerTag.ifBlank { "unselected" }}", "") ?: ""
         exportError = ""
     }
+    var pastedVillageJson by remember { mutableStateOf("") }
+    fun processVillageExport(raw: String) {
+        runCatching {
+            require(raw.isNotBlank()) { "The pasted text is empty" }
+            require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "Text is too large. Maximum supported size is 10 MB" }
+            val parsedExport = VillageExportParser.parse(raw)
+            val exportedTag = parsedExport.playerTag?.let(PlayerTagValidator::normalize)
+            val selectedTag = PlayerTagValidator.normalize(playerTag)
+            require(exportedTag == null || exportedTag == selectedTag) {
+                "This export belongs to ${parsedExport.playerTag}, not the selected profile $playerTag"
+            }
+            val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
+            val coverage = VillageExportCoverageAnalyzer.analyze(parsedExport)
+            val collectionLines = "COVERAGE REPORT\\n${coverage.asMessage()}\\n\\n" + parsedExport.sections.joinToString("\\n") { section ->
+                "${section.key}: ${section.entryCount} ${section.shape}"
+            } + "\\n" + parsedExport.categories.joinToString("\\n") { category ->
+                val itemLabels = category.items.map { item ->
+                    val name = GameDataCatalog.nameFor(item.dataId, category.key, installedGameDataPack) ?: "ID ${item.dataId}"
+                    val level = item.level?.let { " Lv.$it" } ?: ""
+                    "$name$level ×${item.count}"
+                }
+                "  ${category.key}: ${category.items.size} unique IDs • ${category.totalCount} total items" +
+                    if (itemLabels.isEmpty()) "" else "\\n    " + itemLabels.joinToString(", ")
+            }
+            val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
+            prefs.edit()
+                .putString("village_export_json_${playerTag.ifBlank { "unselected" }}", raw)
+                .putString("village_export_summary_${playerTag.ifBlank { "unselected" }}", summary)
+                .putString("village_export_details_${playerTag.ifBlank { "unselected" }}", details)
+                .putString("village_export_collections_${playerTag.ifBlank { "unselected" }}", collectionLines)
+                .apply()
+            exportSummary = summary
+            exportDetails = details
+            exportCollections = collectionLines
+            exportError = ""
+            pastedVillageJson = ""
+        }.onFailure { exportError = "Import failed: ${it.message ?: "Invalid JSON text"}" }
+    }
     val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             runCatching {
-                val raw = context.contentResolver.openInputStream(uri)?.use { readUtf8Limited(it, 10 * 1024 * 1024) }
+                context.contentResolver.openInputStream(uri)?.use { readUtf8Limited(it, 10 * 1024 * 1024) }
                     ?: error("Could not read the selected file")
-                require(raw.isNotBlank()) { "The selected file is empty" }
-                require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "File is too large. Maximum supported size is 10 MB" }
-                val parsedExport = VillageExportParser.parse(raw)
-                val exportedTag = parsedExport.playerTag?.let(PlayerTagValidator::normalize)
-                val selectedTag = PlayerTagValidator.normalize(playerTag)
-                require(exportedTag == null || exportedTag == selectedTag) {
-                    "This export belongs to ${parsedExport.playerTag}, not the selected profile $playerTag"
-                }
-                val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
-                val coverage = VillageExportCoverageAnalyzer.analyze(parsedExport)
-                val collectionLines = "COVERAGE REPORT\n${coverage.asMessage()}\n\n" + parsedExport.sections.joinToString("\n") { section ->
-                    "${section.key}: ${section.entryCount} ${section.shape}"
-                } + "\n" + parsedExport.categories.joinToString("\n") { category ->
-                    val itemLabels = category.items.map { item ->
-                        val name = GameDataCatalog.nameFor(item.dataId, category.key, installedGameDataPack) ?: "ID ${item.dataId}"
-                        val level = item.level?.let { " Lv.$it" } ?: ""
-                        "$name$level ×${item.count}"
-                    }
-                    "  ${category.key}: ${category.items.size} unique IDs • ${category.totalCount} total items" +
-                        if (itemLabels.isEmpty()) "" else "\n    " + itemLabels.joinToString(", ")
-                }
-                val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
-                prefs.edit()
-                    .putString("village_export_json_${playerTag.ifBlank { "unselected" }}", raw)
-                    .putString("village_export_summary_${playerTag.ifBlank { "unselected" }}", summary)
-                    .putString("village_export_details_${playerTag.ifBlank { "unselected" }}", details)
-                    .putString("village_export_collections_${playerTag.ifBlank { "unselected" }}", collectionLines)
-                    .apply()
-                exportSummary = summary
-                exportDetails = details
-                exportCollections = collectionLines
-                exportError = ""
-            }.onFailure { exportError = "Import failed: ${it.message ?: "Invalid JSON file"}" }
+            }.onSuccess { raw -> processVillageExport(raw) }
+                .onFailure { error -> exportError = "Import failed: ${error.message ?: "Could not read file"}" }
         }
     }
 
@@ -517,6 +524,34 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                     }
                                 }
                                 Text("In Clash of Clans, open Settings → More Settings → Export village data. Then select the exported JSON file below.", color = Color.White, fontSize = 13.sp)
+                                OutlinedTextField(
+                                    value = pastedVillageJson,
+                                    onValueChange = { pastedVillageJson = it },
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 220.dp),
+                                    label = { Text("Paste village export JSON") },
+                                    placeholder = { Text("Paste the copied export text here...") },
+                                    minLines = 4,
+                                    maxLines = 8,
+                                    enabled = playerTag.isNotBlank()
+                                )
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                            val clipText = clipboard.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                                            if (clipText.isNullOrBlank()) exportError = "Clipboard is empty. Copy the village export text first."
+                                            else pastedVillageJson = clipText
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = playerTag.isNotBlank()
+                                    ) { Text("PASTE FROM CLIPBOARD") }
+                                    Button(
+                                        onClick = { processVillageExport(pastedVillageJson) },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = playerTag.isNotBlank() && pastedVillageJson.isNotBlank(),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Page)
+                                    ) { Text("IMPORT PASTED TEXT") }
+                                }
                                 if (playerTag.isBlank()) Text("Save a Player Tag first to keep this export linked to the correct profile.", color = Gold, fontSize = 12.sp)
                                 Button(
                                     onClick = { importVillageExport.launch(arrayOf("application/json", "text/json", "text/plain")) },
