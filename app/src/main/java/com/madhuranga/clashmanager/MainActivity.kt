@@ -260,8 +260,23 @@ fun ClashManagerApp() {
                         }
                     }
                 }
+                if (tab == "Dashboard" && (playerTag.isBlank() || tasks.isEmpty())) {
+                    item {
+                        QuickStartCard(
+                            hasPlayerTag = playerTag.isNotBlank(),
+                            hasTasks = tasks.isNotEmpty(),
+                            onOpenVillage = { tab = "Village" },
+                            onOpenPlanner = { tab = "Planner" },
+                            onOpenHelp = { tab = "Help" }
+                        )
+                    }
+                }
                 if (tab == "Attack") {
-                    item { AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch(arrayOf("image/*")) } }
+                    item {
+                        Text("ATTACK PLANNING", color = Gold, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Add the target details and a screenshot to prepare your own attack notes. Automated image analysis is not active yet.", color = Muted, fontSize = 13.sp)
+                        AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch(arrayOf("image/*")) }
+                    }
                 }
                 if (tab == "Village") {
                     item {
@@ -424,6 +439,30 @@ item {
                 showAdd = false
             }
         )
+    }
+}
+
+@Composable
+private fun QuickStartCard(
+    hasPlayerTag: Boolean,
+    hasTasks: Boolean,
+    onOpenVillage: () -> Unit,
+    onOpenPlanner: () -> Unit,
+    onOpenHelp: () -> Unit
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("WELCOME TO CLASH MANAGER", color = Gold, fontWeight = FontWeight.ExtraBold)
+            Text("Start with these simple steps. You can change your details later.", color = Muted, fontSize = 13.sp)
+            SetupGuideRow("1. Save your Player Tag", hasPlayerTag, "Use the profile box above.")
+            SetupGuideRow("2. Set up your village", false, "Add Town Hall, builders and optional village data.")
+            SetupGuideRow("3. Track your first upgrade", hasTasks, "Add a task and enter the remaining time.")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onOpenVillage, modifier = Modifier.weight(1f)) { Text("Village setup") }
+                Button(onClick = onOpenPlanner, modifier = Modifier.weight(1f)) { Text("Add upgrade") }
+            }
+            TextButton(onClick = onOpenHelp) { Text("Need help? Open the simple guide") }
+        }
     }
 }
 
