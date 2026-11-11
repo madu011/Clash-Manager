@@ -407,23 +407,43 @@ private fun saveTasks(tasks: List<UpgradeTask>): String {
     return array.toString()
 }
 private fun summarizeVillageExport(root: JSONObject): String {
-    val keys = root.keys().asSequence().toList()
-    val counts = mutableListOf<String>()
-    keys.forEach { key ->
-        when (val value = root.opt(key)) {
-            is JSONArray -> counts += "$key: ${value.length()} entries"
-            is JSONObject -> counts += "$key: object"
-        }
-    }
-    val details = counts.take(8).joinToString(" • ")
-    return if (details.isBlank()) "Valid JSON imported • root fields: ${keys.take(12).joinToString(", ")}"
-    else "Root fields: ${keys.take(12).joinToString(", ")} • $details"
+    val fields = root.keys().asSequence().toList()
+    val structure = mutableListOf<String>()
+    collectVillageStructure(root, "$", structure, 0)
+    val preview = structure.take(10).joinToString(" • ")
+    return "Valid JSON object imported • ${fields.size} root fields" +
+        if (preview.isBlank()) "" else " • $preview"
 }
 
-
 private fun summarizeVillageExport(root: JSONArray): String {
-    val firstObject = (0 until root.length()).firstNotNullOfOrNull { index -> root.optJSONObject(index) }
-    val fields = firstObject?.keys()?.asSequence()?.toList().orEmpty()
+    val structure = mutableListOf<String>()
+    collectVillageStructure(root, "$", structure, 0)
+    val preview = structure.take(10).joinToString(" • ")
     return "Valid JSON array imported • ${root.length()} entries" +
-        if (fields.isEmpty()) "" else " • first entry fields: ${fields.take(12).joinToString(", ")}"
+        if (preview.isBlank()) "" else " • $preview"
+}
+
+/** Read-only structural inspection. It does not assume undocumented game-export field names. */
+private fun collectVillageStructure(
+    value: Any?,
+    path: String,
+    output: MutableList<String>,
+    depth: Int
+) {
+    if (depth > 4 || output.size >= 20) return
+    when (value) {
+        is JSONObject -> {
+            val keys = value.keys().asSequence().toList()
+            if (keys.isNotEmpty()) output += "$path: ${keys.size} fields"
+            keys.take(20).forEach { key ->
+                if (output.size < 20) collectVillageStructure(value.opt(key), "$path.$key", output, depth + 1)
+            }
+        }
+        is JSONArray -> {
+            output += "$path: ${value.length()} entries"
+            val firstObject = (0 until minOf(value.length(), 5))
+                .firstNotNullOfOrNull { value.optJSONObject(it) }
+            if (firstObject != null) collectVillageStructure(firstObject, "$path[]", output, depth + 1)
+        }
+    }
 }
