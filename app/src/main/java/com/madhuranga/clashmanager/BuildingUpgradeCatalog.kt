@@ -384,6 +384,8 @@ object BuildingUpgradeCatalog {
         )
     )
 
+    fun supportedBuildingNames(): List<String> = buildings.map { it.name }.sorted()
+
     fun maximumLevelAt(dataId: Long, townHallLevel: Int): Int? {
         if (townHallLevel !in 1..18) return null
         return buildings.firstOrNull { it.dataId == dataId }
