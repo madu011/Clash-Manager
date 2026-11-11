@@ -66,4 +66,10 @@ object BuildingUpgradeCatalog {
 
     fun buildingName(dataId: Long): String? =
         buildings.firstOrNull { it.dataId == dataId }?.name
+
+    fun maximumLevelAt(buildingName: String, townHallLevel: Int): Int? {
+        if (townHallLevel !in 1..18) return null
+        return buildings.firstOrNull { it.name.equals(buildingName.trim(), ignoreCase = true) }
+            ?.maximumLevelAt(townHallLevel)
+    }
 }
