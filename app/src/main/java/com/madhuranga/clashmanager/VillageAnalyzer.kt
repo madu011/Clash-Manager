@@ -8,7 +8,9 @@ data class VillageSnapshot(
     val playerTag: String,
     val townHallLevel: Int,
     val heroLevels: Map<String, Int> = emptyMap(),
+    val heroTargetLevels: Map<String, Int> = emptyMap(),
     val troopLevels: Map<String, Int> = emptyMap(),
+    val troopTargetLevels: Map<String, Int> = emptyMap(),
     val rushedBuildings: List<String> = emptyList(),
     val availableBuilders: Int = 0
 )
@@ -55,13 +57,22 @@ object VillageAnalyzer {
             )
         }
 
-        val lowHeroes = village.heroLevels.filterValues { it < th * 5 }
-        lowHeroes.forEach { (hero, level) ->
-            result += UpgradeRecommendation(
+        village.heroLevels.forEach { (hero, level) ->
+            val target = village.heroTargetLevels[hero] ?: return@forEach
+            if (level < target) result += UpgradeRecommendation(
                 title = "Plan $hero upgrade",
-                reason = "Current level $level is below this planner's Town Hall progress checkpoint.",
+                reason = "Current level $level; your selected target is $target.",
                 priority = 75,
                 category = "Heroes"
+            )
+        }
+        village.troopLevels.forEach { (troop, level) ->
+            val target = village.troopTargetLevels[troop] ?: return@forEach
+            if (level < target) result += UpgradeRecommendation(
+                title = "Plan $troop research",
+                reason = "Current level $level; your selected target is $target.",
+                priority = 72,
+                category = "Laboratory"
             )
         }
 
