@@ -329,29 +329,39 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 contentColor = Color.White,
                 tonalElevation = 8.dp
             ) {
-                listOf("Dashboard", "Planner", "Attack", "Village", "Updates", "Help").forEach { item ->
+                listOf("Home", "Village", "Attack", "Tools", "More").forEach { item ->
+                    val destination = when (item) {
+                        "Home" -> "Dashboard"
+                        "Tools" -> "Planner"
+                        "More" -> "Help"
+                        else -> item
+                    }
                     NavigationBarItem(
-                        selected = tab == item,
+                        selected = when (item) {
+                            "Home" -> tab == "Dashboard"
+                            "Tools" -> tab == "Planner"
+                            "More" -> tab == "Help" || tab == "Updates"
+                            else -> tab == destination
+                        },
                         onClick = {
                             val mustUpdate = latestManifest?.let {
                                 isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, it.minimumSupportedVersionCode)
                             } == true
-                            tab = if (mustUpdate && item != "Updates") "Updates" else item
+                            tab = if (mustUpdate && destination != "Updates") "Updates" else destination
                         },
                         icon = {
                             Text(
                                 text = when (item) {
-                                    "Dashboard" -> "🏰"
-                                    "Planner" -> "🛠️"
-                                    "Attack" -> "⚔️"
+                                    "Home" -> "🏠"
                                     "Village" -> "🏡"
-                                    "Updates" -> "⬆️"
-                                    else -> "📖"
+                                    "Attack" -> "⚔️"
+                                    "Tools" -> "🛠️"
+                                    else -> "☰"
                                 },
-                                fontSize = 17.sp
+                                fontSize = 18.sp
                             )
                         },
-                        label = { Text(item, fontSize = 9.sp, maxLines = 1) }
+                        label = { Text(item, fontSize = 10.sp, maxLines = 1) }
                     )
                 }
             }
@@ -438,6 +448,23 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                 colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF17120A))
                             ) { Text("SAVE PLAYER PROFILE", fontWeight = FontWeight.ExtraBold) }
                             Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Color(0xFFCFD6E1), fontSize = 10.sp)
+                        }
+                    }
+                }
+                if (tab == "Dashboard") {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("QUICK COMMANDS", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
+                                GameShortcut("🏡", "My Village", Modifier.weight(1f)) { tab = "Village" }
+                                GameShortcut("⚔️", "Attack", Modifier.weight(1f)) { tab = "Attack" }
+                                GameShortcut("🔨", "Upgrade", Modifier.weight(1f)) { tab = "Planner" }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
+                                GameShortcut("⏱️", "Timers", Modifier.weight(1f)) { tab = "Dashboard" }
+                                GameShortcut("📊", "Reports", Modifier.weight(1f)) { tab = "Village" }
+                                GameShortcut("📦", "More", Modifier.weight(1f)) { tab = "Help" }
+                            }
                         }
                     }
                 }
@@ -722,6 +749,36 @@ item {
                 showAdd = false
             }
         )
+    }
+}
+
+@Composable
+private fun GameShortcut(
+    icon: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(88.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF30394A)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF8B7047)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    listOf(Color(0xFF485366), Color(0xFF202735))
+                )
+            ).padding(7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(icon, fontSize = 25.sp)
+            Text(label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        }
     }
 }
 
