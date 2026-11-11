@@ -859,32 +859,58 @@ private fun HelpSection(title: String, body: String) {
 }
 
 @Composable
+@Composable
 private fun UpgradeCard(task: UpgradeTask, now: Long, onComplete: () -> Unit) {
     val remaining = task.remaining(now)
     val progress = task.progress(now)
-    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
-        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    val isLab = task.category == "Laboratory"
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+        shape = RoundedCornerShape(18.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isLab) Color(0xFF376B88) else StoneEdge),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth()
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                    listOf(Color(0xFF34465B), Color(0xFF1B2330))
+                ))
+                .padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(if (task.category == "Laboratory") Icons.Default.FlashOn else Icons.Default.Construction,
-                    contentDescription = null, tint = Gold)
-                Spacer(Modifier.width(9.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(task.title, color = Color.White, fontWeight = FontWeight.SemiBold)
-                    Text("Level ${task.fromLevel} → ${task.toLevel}", color = Muted, fontSize = 12.sp)
+                Surface(
+                    color = if (isLab) Color(0xFF18394A) else Color(0xFF49351D),
+                    shape = RoundedCornerShape(11.dp)
+                ) {
+                    Icon(
+                        if (isLab) Icons.Default.FlashOn else Icons.Default.Construction,
+                        contentDescription = null,
+                        tint = if (isLab) Blue else Gold,
+                        modifier = Modifier.padding(10.dp).size(22.dp)
+                    )
                 }
-                Text(if (remaining == 0L) "READY" else formatTime(remaining), color = Gold, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(task.title, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("${task.category.uppercase()}  •  LEVEL ${task.fromLevel} → ${task.toLevel}", color = Color(0xFFD4C29F), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(if (remaining == 0L) "READY" else formatTime(remaining), color = Gold, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+                    Text("TIME LEFT", color = Muted, fontSize = 8.sp, letterSpacing = 1.sp)
+                }
             }
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(7.dp),
-                color = if (task.category == "Laboratory") Blue else Gold,
-                trackColor = Color(0xFF354052)
+                modifier = Modifier.fillMaxWidth().height(9.dp),
+                color = if (isLab) Blue else Gold,
+                trackColor = Color(0xFF111925)
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${(progress * 100).toInt()}% complete", color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                Text("${(progress * 100).toInt()}% COMPLETE", color = Color(0xFFD5DCE6), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 TextButton(onClick = onComplete) {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(15.dp))
-                    Text(" Mark done")
+                    Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF9BE7A8), modifier = Modifier.size(15.dp))
+                    Text(" CLAIM", color = Color(0xFF9BE7A8), fontWeight = FontWeight.Bold)
                 }
             }
         }
