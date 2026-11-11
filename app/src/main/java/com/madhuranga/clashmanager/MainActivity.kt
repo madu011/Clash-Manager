@@ -311,6 +311,36 @@ item {
 }
 
 @Composable
+private fun HelpGuide() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("PLAYER USER GUIDE", color = Gold, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+        Text("A step-by-step guide to setting up and using the features currently available in Clash Manager.", color = Muted, fontSize = 12.sp)
+        HelpSection("1. First setup", "Open Dashboard and find YOUR VILLAGE PROFILE. Enter your Clash of Clans Player Tag, then tap Save player profile. You can find your tag in the game by opening your player profile and copying the tag shown below your player name. Enter the tag with or without #. The saved tag is stored on this device. You can use the app's manual planner even before connecting online services.")
+        HelpSection("2. What information should I prepare?", "Have your Player Tag ready. For accurate manual planning, know your Town Hall level, how many builders are free, which buildings are behind, and the names, current levels and remaining durations of upgrades you want to track. If you want to test village import, prepare the JSON export created by the game, if that export option is available in your game version. Never share your Supercell ID password or verification codes.")
+        HelpSection("3. Export village data from the game", "In Clash of Clans, open Settings and look under More Settings for the village data export option. Follow the game's own export/save flow and remember where the JSON file is saved. The exact menu wording and availability may vary by game version and device. If you cannot find an export option, do not download an unknown file or give another app your account login; use manual tracking for now.")
+        HelpSection("4. Import your JSON file", "First save a Player Tag in the profile card. Open the Village tab, read the import note, and tap IMPORT VILLAGE JSON. In the Android file picker, browse to the folder where you saved the game's export and select the JSON or text file. A successful import shows a summary, import date and file size. Empty files, invalid JSON and files larger than 10 MB are rejected. Each saved Player Tag has its own local import record. Selecting a different tag changes which profile's import summary is shown.")
+        HelpSection("5. Understand the import result", "The current import screen validates the JSON and previews its nested structure. It does not yet calculate building levels, walls, traps, resources or upgrade timers from the file. A successful import means the file was read and stored, not that every village value has been analysed. Keep the original export so it can be imported again if needed.")
+        HelpSection("6. Dashboard and upgrade cards", "Dashboard shows the builder task list and laboratory task list. Tap the + button to add an upgrade. Enter a building, troop or research name, its current level, the duration in hours, and choose Builder or Laboratory. Tap Add task. The card shows the level transition, remaining time and estimated progress. Tap Mark done when the task is finished to remove it from the active list.")
+        HelpSection("7. Planner tab", "The Planner tab currently shares the manual upgrade tracker view. Add tasks with the + button and use the Builder and Laboratory categories to keep construction and research separate. Enter the duration remaining from the moment you add the task; the countdown starts when you tap Add task. If the real in-game timer differs, remove the task and add it again with the corrected duration.")
+        HelpSection("8. Reminders and notifications", "The app schedules a reminder for the duration entered when a task is created. On Android 13 and newer, allow notification permission when asked so reminders can be shown. Check Android Settings → Apps → Clash Manager → Notifications if alerts are disabled. Battery saver or device restrictions may delay notifications.")
+        HelpSection("9. Saving and privacy", "Player Tag, upgrade tasks and imported JSON are stored locally in this app's private device preferences. They are not currently synced to a server or another phone. Uninstalling the app or clearing its storage may remove this local data. Keep your original JSON export separately. Do not enter passwords, Supercell ID codes or other account secrets.")
+        HelpSection("10. Online profile sync and analysis", "The online profile panel is a future integration placeholder. Live profile sync and automatic recommendations are not connected in this version. The official game API is read-only and does not provide every live village detail, such as all building positions or active builder countdowns. The app must label unavailable information rather than guess.")
+        HelpSection("11. Common problems", "Player Tag not accepted: check the tag from your in-game profile and remove spaces. Import button disabled: save a Player Tag first. Import failed: make sure the file is a real, non-empty JSON export and is no larger than 10 MB. No reminder: check notification permission and device battery restrictions. Wrong countdown: recreate the task with the correct remaining hours.")
+        HelpSection("12. Current feature status", "Available now: local Player Tag profile, manual Builder and Laboratory task tracking, countdowns, progress display, local saving, reminder scheduling foundation, and JSON file validation/structure preview. Not available yet: live API sync, automatic village parsing, rush detection from imported data, resource calculations, AI upgrade recommendations, and base-layout generation.")
+    }
+}
+
+@Composable
+private fun HelpSection(title: String, body: String) {
+    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(16.dp)) {
+        Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text(title, color = Gold, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(body, color = Color.White, fontSize = 12.sp, lineHeight = 18.sp)
+        }
+    }
+}
+
+@Composable
 private fun UpgradeCard(task: UpgradeTask, now: Long, onComplete: () -> Unit) {
     val remaining = task.remaining(now)
     val progress = task.progress(now)
