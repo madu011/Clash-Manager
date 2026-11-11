@@ -146,8 +146,6 @@ fun ClashManagerApp() {
                 val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
                 val collectionLines = parsedExport.categories.joinToString("\n") { category ->
                     "${category.key}: ${category.items.size} unique entries • ${category.totalCount} total"
-                } else {
-                    summarizeVillageExport(JSONObject(raw))
                 }
                 val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
                 prefs.edit()
