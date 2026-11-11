@@ -377,36 +377,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 contentPadding = PaddingValues(18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                if (tab == "Dashboard") {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF26354A)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(androidx.compose.ui.graphics.Brush.linearGradient(
-                                    listOf(Color(0xFF425D79), Color(0xFF202A3B), Color(0xFF6A421F))
-                                ))
-                                .padding(18.dp)
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("⚔️  CLASH MANAGER", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
-                                    Text("🛡️", fontSize = 26.sp)
-                                }
-                                Text("VILLAGE COMMAND CENTER", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                                Text("Plan  •  Analyze  •  Manage  •  Improve", color = Color(0xFFFFD994), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                HorizontalDivider(color = Color(0x66FFC247))
-                                Text("Designed & Developed by Madhuranga Yasanath", color = Color(0xFFD7DFEA), fontSize = 10.sp)
-                            }
-                        }
-                    }
-                }
-                }
+
                 if (tab == "Village") {
                 item {
                     Card(
@@ -835,6 +806,75 @@ item {
 }
 
 @Composable
+private fun FantasyVillageScene(modifier: Modifier = Modifier) {
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        drawRect(
+            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                listOf(Color(0xFF78B6DC), Color(0xFFB5D7E7), Color(0xFF597C62))
+            )
+        )
+        // Distant mountains and rolling green terrain.
+        val far = androidx.compose.ui.graphics.Path().apply {
+            moveTo(0f, h * 0.70f); lineTo(w * 0.18f, h * 0.34f)
+            lineTo(w * 0.34f, h * 0.68f); lineTo(w * 0.52f, h * 0.40f)
+            lineTo(w * 0.76f, h * 0.72f); lineTo(w, h * 0.43f)
+            lineTo(w, h); lineTo(0f, h); close()
+        }
+        drawPath(far, Color(0xFF526C59))
+        val hill = androidx.compose.ui.graphics.Path().apply {
+            moveTo(0f, h * 0.82f); quadraticTo(w * 0.35f, h * 0.52f, w * 0.62f, h * 0.83f)
+            quadraticTo(w * 0.83f, h * 0.62f, w, h * 0.78f)
+            lineTo(w, h); lineTo(0f, h); close()
+        }
+        drawPath(hill, Color(0xFF31583A))
+        // Sun and soft clouds.
+        drawCircle(Color(0xFFFFE6A1), radius = h * 0.12f, center = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.22f))
+        listOf(0.15f, 0.42f).forEachIndexed { i, x ->
+            val y = h * (if (i == 0) 0.22f else 0.15f)
+            drawCircle(Color(0xFFEAF4F6), h * 0.055f, androidx.compose.ui.geometry.Offset(w * x, y))
+            drawCircle(Color(0xFFEAF4F6), h * 0.075f, androidx.compose.ui.geometry.Offset(w * x + h * 0.06f, y + h * 0.01f))
+            drawCircle(Color(0xFFEAF4F6), h * 0.05f, androidx.compose.ui.geometry.Offset(w * x + h * 0.12f, y))
+        }
+        // Central fantasy keep: walls, towers, battlements and red pennant.
+        val stone = Color(0xFFB8A17A)
+        val shadow = Color(0xFF5A4938)
+        drawRoundRect(shadow, topLeft = androidx.compose.ui.geometry.Offset(w * 0.36f, h * 0.47f), size = androidx.compose.ui.geometry.Size(w * 0.30f, h * 0.39f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f))
+        drawRoundRect(stone, topLeft = androidx.compose.ui.geometry.Offset(w * 0.38f, h * 0.45f), size = androidx.compose.ui.geometry.Size(w * 0.27f, h * 0.39f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f))
+        drawRoundRect(Color(0xFF80694F), topLeft = androidx.compose.ui.geometry.Offset(w * 0.46f, h * 0.61f), size = androidx.compose.ui.geometry.Size(w * 0.10f, h * 0.23f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(18f))
+        drawRoundRect(Color(0xFF263344), topLeft = androidx.compose.ui.geometry.Offset(w * 0.405f, h * 0.56f), size = androidx.compose.ui.geometry.Size(w * 0.045f, h * 0.07f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f))
+        drawRoundRect(Color(0xFF263344), topLeft = androidx.compose.ui.geometry.Offset(w * 0.58f, h * 0.56f), size = androidx.compose.ui.geometry.Size(w * 0.045f, h * 0.07f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f))
+        listOf(0.33f, 0.59f).forEach { x ->
+            drawRoundRect(shadow, topLeft = androidx.compose.ui.geometry.Offset(w * x, h * 0.31f), size = androidx.compose.ui.geometry.Size(w * 0.09f, h * 0.52f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f))
+            drawRoundRect(stone, topLeft = androidx.compose.ui.geometry.Offset(w * (x + 0.008f), h * 0.29f), size = androidx.compose.ui.geometry.Size(w * 0.075f, h * 0.51f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f))
+            drawRect(Color(0xFF594633), topLeft = androidx.compose.ui.geometry.Offset(w * (x + 0.02f), h * 0.38f), size = androidx.compose.ui.geometry.Size(w * 0.018f, h * 0.09f))
+            drawRect(Color(0xFF594633), topLeft = androidx.compose.ui.geometry.Offset(w * (x + 0.052f), h * 0.38f), size = androidx.compose.ui.geometry.Size(w * 0.018f, h * 0.09f))
+            val roof = androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * (x - 0.015f), h * 0.30f); lineTo(w * (x + 0.045f), h * 0.12f)
+                lineTo(w * (x + 0.105f), h * 0.30f); close()
+            }
+            drawPath(roof, Color(0xFF6D3D2D))
+        }
+        drawLine(Color(0xFF45372C), androidx.compose.ui.geometry.Offset(w * 0.375f, h * 0.17f), androidx.compose.ui.geometry.Offset(w * 0.375f, h * 0.37f), strokeWidth = 3f)
+        val flag = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.375f, h * 0.17f); lineTo(w * 0.49f, h * 0.20f)
+            lineTo(w * 0.44f, h * 0.29f); lineTo(w * 0.375f, h * 0.26f); close()
+        }
+        drawPath(flag, Color(0xFFB83D35))
+        // Foreground grass and warm golden frame.
+        drawLine(Color(0xFF9BCB74), androidx.compose.ui.geometry.Offset(0f, h * 0.94f), androidx.compose.ui.geometry.Offset(w, h * 0.94f), strokeWidth = 3f)
+        drawRoundRect(
+            color = Color(0xFFD6AD61),
+            topLeft = androidx.compose.ui.geometry.Offset(1f, 1f),
+            size = androidx.compose.ui.geometry.Size(w - 2f, h - 2f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(14f),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
+        )
+    }
+}
+
+@Composable
 private fun DashboardHeroCard(
     playerTag: String,
     townHallLevel: String,
@@ -868,32 +908,9 @@ private fun DashboardHeroCard(
                     }
                     Text("🏹", fontSize = 34.sp)
                 }
-                Box(
-                    Modifier.fillMaxWidth().height(116.dp)
-                        .background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(Color(0xFF76A9C8), Color(0xFF344D61), Color(0xFF243329))
-                            ),
-                            RoundedCornerShape(16.dp)
-                        )
-                ) {
-                    Row(
-                        Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 5.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        Text("🌲  🏰", fontSize = 39.sp)
-                        Text("🛡️", fontSize = 29.sp)
-                        Text("🏹  🌳", fontSize = 38.sp)
-                    }
-                    Text(
-                        "PLAN  •  ANALYZE  •  IMPROVE",
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
-                    )
-                }
+                FantasyVillageScene(
+                    modifier = Modifier.fillMaxWidth().height(142.dp)
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     VillageStatTile("TOWN HALL", townHallLevel.ifBlank { "—" }, "🏰", Modifier.weight(1f))
                     VillageStatTile("BUILDERS", builders.ifBlank { "—" }, "🛠️", Modifier.weight(1f))
