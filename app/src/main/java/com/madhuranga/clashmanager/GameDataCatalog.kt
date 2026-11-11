@@ -1,10 +1,8 @@
 package com.madhuranga.clashmanager
 
 /**
- * Verified ID-to-name seed catalog.
- * Source: chiefpansancolt/clash-of-clans-data (MIT), dataId/name/base fields.
- * Collection-aware lookup prevents Home Village and Builder Base IDs being mixed.
- * Unknown or unsupported collection keys intentionally return null.
+ * Verified built-in ID catalogue with an optional validated remote pack overlay.
+ * Unknown IDs intentionally remain unresolved.
  */
 object GameDataCatalog {
     private data class Entry(val dataId: Long, val name: String, val base: String)
@@ -40,16 +38,18 @@ object GameDataCatalog {
         "buildings2", "traps2", "decos2", "obstacles2", "units2", "heroes2"
     )
 
-    fun nameFor(dataId: Long, collectionKey: String): String? {
+    fun nameFor(dataId: Long, collectionKey: String, pack: ParsedGameDataPack? = null): String? {
         val base = when (collectionKey) {
             in homeCollections -> "home"
             in builderCollections -> "builder"
             else -> return null
         }
-        return entries.firstOrNull { it.dataId == dataId && it.base == base }?.name
+        val remote = pack?.items?.firstOrNull {
+            it.dataId == dataId && it.base == base && it.category == collectionKey
+        }?.name
+        return remote ?: entries.firstOrNull { it.dataId == dataId && it.base == base }?.name
     }
 
-    /** Compatibility lookup only resolves IDs that have one unambiguous name. */
     fun nameFor(dataId: Long): String? =
         entries.filter { it.dataId == dataId }.map { it.name }.distinct().singleOrNull()
 }
