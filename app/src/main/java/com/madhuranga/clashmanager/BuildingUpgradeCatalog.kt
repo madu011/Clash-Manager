@@ -178,6 +178,209 @@ object BuildingUpgradeCatalog {
                 UpgradeStep(16, 8_000_000L, "Gold", 388_800L),
                 UpgradeStep(17, 14_000_000L, "Gold", 475_200L)
             )
+        ),
+        Building(
+            dataId = 1000012L,
+            name = "Air Defense",
+            levels = listOf(
+                LevelRequirement(1, 4),
+                LevelRequirement(2, 4),
+                LevelRequirement(3, 5),
+                LevelRequirement(4, 6),
+                LevelRequirement(5, 7),
+                LevelRequirement(6, 8),
+                LevelRequirement(7, 9),
+                LevelRequirement(8, 10),
+                LevelRequirement(9, 11),
+                LevelRequirement(10, 12),
+                LevelRequirement(11, 13),
+                LevelRequirement(12, 14),
+                LevelRequirement(13, 15),
+                LevelRequirement(14, 16),
+                LevelRequirement(15, 17),
+                LevelRequirement(16, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 90000L, "Gold", 7200L),
+                UpgradeStep(3, 210000L, "Gold", 21600L),
+                UpgradeStep(4, 500000L, "Gold", 43200L),
+                UpgradeStep(5, 800000L, "Gold", 64800L),
+                UpgradeStep(6, 1000000L, "Gold", 86400L),
+                UpgradeStep(7, 1750000L, "Gold", 172800L),
+                UpgradeStep(8, 2300000L, "Gold", 216000L),
+                UpgradeStep(9, 3400000L, "Gold", 259200L),
+                UpgradeStep(10, 5000000L, "Gold", 345600L),
+                UpgradeStep(11, 5600000L, "Gold", 388800L),
+                UpgradeStep(12, 6500000L, "Gold", 432000L),
+                UpgradeStep(13, 8000000L, "Gold", 518400L),
+                UpgradeStep(14, 9000000L, "Gold", 561600L),
+                UpgradeStep(15, 15000000L, "Gold", 604800L),
+                UpgradeStep(16, 26000000L, "Gold", 1144800L)
+            )
+        ),
+        Building(
+            dataId = 1000028L,
+            name = "Air Sweeper",
+            levels = listOf(
+                LevelRequirement(1, 6),
+                LevelRequirement(2, 6),
+                LevelRequirement(3, 7),
+                LevelRequirement(4, 8),
+                LevelRequirement(5, 9),
+                LevelRequirement(6, 10),
+                LevelRequirement(7, 11)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 300000L, "Gold", 21600L),
+                UpgradeStep(3, 450000L, "Gold", 28800L),
+                UpgradeStep(4, 800000L, "Gold", 43200L),
+                UpgradeStep(5, 1200000L, "Gold", 86400L),
+                UpgradeStep(6, 1900000L, "Gold", 172800L),
+                UpgradeStep(7, 3400000L, "Gold", 259200L)
+            )
+        ),
+        Building(
+            dataId = 1000032L,
+            name = "Bomb Tower",
+            levels = listOf(
+                LevelRequirement(1, 8),
+                LevelRequirement(2, 8),
+                LevelRequirement(3, 9),
+                LevelRequirement(4, 10),
+                LevelRequirement(5, 11),
+                LevelRequirement(6, 11),
+                LevelRequirement(7, 12),
+                LevelRequirement(8, 13),
+                LevelRequirement(9, 14),
+                LevelRequirement(10, 15),
+                LevelRequirement(11, 16),
+                LevelRequirement(12, 17),
+                LevelRequirement(13, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 1000000L, "Gold", 64800L),
+                UpgradeStep(3, 1300000L, "Gold", 86400L),
+                UpgradeStep(4, 1800000L, "Gold", 129600L),
+                UpgradeStep(5, 1900000L, "Gold", 151200L),
+                UpgradeStep(6, 2000000L, "Gold", 172800L),
+                UpgradeStep(7, 4000000L, "Gold", 259200L),
+                UpgradeStep(8, 5000000L, "Gold", 302400L),
+                UpgradeStep(9, 6000000L, "Gold", 345600L),
+                UpgradeStep(10, 7000000L, "Gold", 388800L),
+                UpgradeStep(11, 8500000L, "Gold", 432000L),
+                UpgradeStep(12, 14500000L, "Gold", 604800L),
+                UpgradeStep(13, 25000000L, "Gold", 1123200L)
+            )
+        ),
+        Building(
+            dataId = 1000019L,
+            name = "Hidden Tesla",
+            levels = listOf(
+                LevelRequirement(1, 7),
+                LevelRequirement(2, 7),
+                LevelRequirement(3, 7),
+                LevelRequirement(4, 8),
+                LevelRequirement(5, 8),
+                LevelRequirement(6, 8),
+                LevelRequirement(7, 9),
+                LevelRequirement(8, 10),
+                LevelRequirement(9, 11),
+                LevelRequirement(10, 12),
+                LevelRequirement(11, 13),
+                LevelRequirement(12, 13),
+                LevelRequirement(13, 14),
+                LevelRequirement(14, 15),
+                LevelRequirement(15, 16),
+                LevelRequirement(16, 17),
+                LevelRequirement(17, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 350000L, "Gold", 10800L),
+                UpgradeStep(3, 500000L, "Gold", 14400L),
+                UpgradeStep(4, 600000L, "Gold", 21600L),
+                UpgradeStep(5, 800000L, "Gold", 43200L),
+                UpgradeStep(6, 1200000L, "Gold", 86400L),
+                UpgradeStep(7, 1400000L, "Gold", 108000L),
+                UpgradeStep(8, 1600000L, "Gold", 129600L),
+                UpgradeStep(9, 2100000L, "Gold", 151200L),
+                UpgradeStep(10, 3000000L, "Gold", 172800L),
+                UpgradeStep(11, 3100000L, "Gold", 216000L),
+                UpgradeStep(12, 3700000L, "Gold", 259200L),
+                UpgradeStep(13, 5100000L, "Gold", 302400L),
+                UpgradeStep(14, 6500000L, "Gold", 345600L),
+                UpgradeStep(15, 8200000L, "Gold", 432000L),
+                UpgradeStep(16, 15000000L, "Gold", 604800L),
+                UpgradeStep(17, 25000000L, "Gold", 1123200L)
+            )
+        ),
+        Building(
+            dataId = 1000027L,
+            name = "Inferno Tower",
+            levels = listOf(
+                LevelRequirement(1, 10),
+                LevelRequirement(2, 10),
+                LevelRequirement(3, 10),
+                LevelRequirement(4, 11),
+                LevelRequirement(5, 11),
+                LevelRequirement(6, 12),
+                LevelRequirement(7, 13),
+                LevelRequirement(8, 14),
+                LevelRequirement(9, 15),
+                LevelRequirement(10, 16),
+                LevelRequirement(11, 17),
+                LevelRequirement(12, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 1200000L, "Gold", 86400L),
+                UpgradeStep(3, 2400000L, "Gold", 172800L),
+                UpgradeStep(4, 3400000L, "Gold", 216000L),
+                UpgradeStep(5, 4200000L, "Gold", 259200L),
+                UpgradeStep(6, 6000000L, "Gold", 345600L),
+                UpgradeStep(7, 8000000L, "Gold", 432000L),
+                UpgradeStep(8, 9500000L, "Gold", 518400L),
+                UpgradeStep(9, 10000000L, "Gold", 561600L),
+                UpgradeStep(10, 11000000L, "Gold", 604800L),
+                UpgradeStep(11, 16000000L, "Gold", 691200L),
+                UpgradeStep(12, 26500000L, "Gold", 1166400L)
+            )
+        ),
+        Building(
+            dataId = 1000031L,
+            name = "Eagle Artillery",
+            levels = listOf(
+                LevelRequirement(1, 11),
+                LevelRequirement(2, 11),
+                LevelRequirement(3, 12),
+                LevelRequirement(4, 13),
+                LevelRequirement(5, 14),
+                LevelRequirement(6, 15),
+                LevelRequirement(7, 16)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 6000000L, "Gold", 432000L),
+                UpgradeStep(3, 9000000L, "Gold", 604800L),
+                UpgradeStep(4, 10000000L, "Gold", 648000L),
+                UpgradeStep(5, 12000000L, "Gold", 691200L),
+                UpgradeStep(6, 13000000L, "Gold", 777600L),
+                UpgradeStep(7, 14000000L, "Gold", 820800L)
+            )
+        ),
+        Building(
+            dataId = 1000077L,
+            name = "Monolith",
+            levels = listOf(
+                LevelRequirement(1, 15),
+                LevelRequirement(2, 15),
+                LevelRequirement(3, 16),
+                LevelRequirement(4, 17),
+                LevelRequirement(5, 18)
+            ),
+            upgrades = listOf(
+                UpgradeStep(2, 250000L, "Dark Elixir", 691200L),
+                UpgradeStep(3, 260000L, "Dark Elixir", 777600L),
+                UpgradeStep(4, 300000L, "Dark Elixir", 950400L),
+                UpgradeStep(5, 470000L, "Dark Elixir", 1296000L)
+            )
         )
     )
 
