@@ -90,9 +90,16 @@ fun ClashManagerApp() {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf("Dashboard") }
-    var thLevel by remember { mutableStateOf(prefs.getString("town_hall_level", "10") ?: "10") }
-    var freeBuilders by remember { mutableStateOf(prefs.getString("available_builders", "1") ?: "1") }
-    var rushedBuildings by remember { mutableStateOf(prefs.getString("rushed_buildings", "") ?: "") }
+    val profileKey = playerTag.ifBlank { "unselected" }
+    var thLevel by remember(profileKey) {
+        mutableStateOf(prefs.getString("town_hall_level_$profileKey", "10") ?: "10")
+    }
+    var freeBuilders by remember(profileKey) {
+        mutableStateOf(prefs.getString("available_builders_$profileKey", "1") ?: "1")
+    }
+    var rushedBuildings by remember(profileKey) {
+        mutableStateOf(prefs.getString("rushed_buildings_$profileKey", "") ?: "")
+    }
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportDetails by remember { mutableStateOf(prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
@@ -135,11 +142,11 @@ fun ClashManagerApp() {
     LaunchedEffect(taskStorageKey, tasks) {
         prefs.edit().putString(taskStorageKey, saveTasks(tasks)).apply()
     }
-    LaunchedEffect(thLevel, freeBuilders, rushedBuildings) {
+    LaunchedEffect(profileKey, thLevel, freeBuilders, rushedBuildings) {
         prefs.edit()
-            .putString("town_hall_level", thLevel)
-            .putString("available_builders", freeBuilders)
-            .putString("rushed_buildings", rushedBuildings)
+            .putString("town_hall_level_$profileKey", thLevel)
+            .putString("available_builders_$profileKey", freeBuilders)
+            .putString("rushed_buildings_$profileKey", rushedBuildings)
             .apply()
     }
 
