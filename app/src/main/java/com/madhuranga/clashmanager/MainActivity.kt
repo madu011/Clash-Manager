@@ -3,12 +3,18 @@ package com.madhuranga.clashmanager
 import android.os.Bundle
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Context
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import android.os.Build
 import android.Manifest
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.work.Data
@@ -105,6 +111,14 @@ fun ClashManagerApp() {
             result.onSuccess { manifest ->
                 latestManifest = manifest
                 updateCheckStatus = "Release manifest found • App version ${manifest.latestVersionName} • Data pack ${manifest.dataPackVersion}"
+                if (manifest.latestVersionCode > BuildConfig.VERSION_CODE) {
+                    val lastNotifiedVersion = prefs.getInt("last_update_notification_version", 0)
+                    if (lastNotifiedVersion != manifest.latestVersionCode &&
+                        showUpdateAvailableNotification(context, manifest.latestVersionName)
+                    ) {
+                        prefs.edit().putInt("last_update_notification_version", manifest.latestVersionCode).apply()
+                    }
+                }
             }.onFailure { error ->
                 latestManifest = null
                 updateCheckStatus = error.message ?: "Could not check for updates"
@@ -813,4 +827,33 @@ private fun collectVillageStructure(
             if (firstObject != null) collectVillageStructure(firstObject, "$path[]", output, depth + 1)
         }
     }
+}
+
+private const val UPDATE_NOTIFICATION_CHANNEL_ID = "clash_manager_updates"
+private const val UPDATE_NOTIFICATION_ID = 4102
+
+private fun showUpdateAvailableNotification(context: Context, versionName: String): Boolean {
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(UPDATE_NOTIFICATION_CHANNEL_ID, "App updates", NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "Notifications when a new Clash Manager version is available"
+        manager.createNotificationChannel(channel)
+    }
+    val launchIntent = Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+    }
+    val pendingIntent = PendingIntent.getActivity(context, UPDATE_NOTIFICATION_ID, launchIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    val notification = NotificationCompat.Builder(context, UPDATE_NOTIFICATION_CHANNEL_ID)
+        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+        .setContentTitle("Clash Manager update available")
+        .setContentText("Version $versionName is ready to review in Update Center.")
+        .setContentIntent(pendingIntent)
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .build()
+    return runCatching {
+        NotificationManagerCompat.from(context).notify(UPDATE_NOTIFICATION_ID, notification)
+        true
+    }.getOrDefault(false)
 }
