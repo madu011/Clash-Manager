@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
 fun ClashManagerApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
-    val installedGameDataPack = remember {
+    var installedGameDataPack by remember { mutableStateOf(
         runCatching {
             val packFile = java.io.File(context.filesDir, "game-data/active-pack.json")
             if (packFile.isFile) {
@@ -85,7 +85,7 @@ fun ClashManagerApp() {
                 GameDataPackParser.parse(rawPack, version)
             } else null
         }.getOrNull()
-    }
+    ) }
     val updateScope = rememberCoroutineScope()
     var updateCheckStatus by remember { mutableStateOf("Not checked yet") }
     var latestManifest by remember { mutableStateOf<UpdateManifest?>(null) }
@@ -119,8 +119,12 @@ fun ClashManagerApp() {
             val result = withContext(Dispatchers.IO) {
                 GameDataPackInstaller(context).install(manifest)
             }
-            result.onSuccess {
-                dataPackStatus = "Game data pack ${manifest.dataPackVersion} installed. Reopen the Village tab to use the updated catalogue."
+            result.onSuccess { file ->
+                installedGameDataPack = runCatching {
+                    val rawPack = file.readText(Charsets.UTF_8)
+                    GameDataPackParser.parse(rawPack, manifest.dataPackVersion)
+                }.getOrNull()
+                dataPackStatus = "Game data pack ${manifest.dataPackVersion} installed and activated."
             }.onFailure { error ->
                 dataPackStatus = error.message ?: "Game data installation failed"
             }
