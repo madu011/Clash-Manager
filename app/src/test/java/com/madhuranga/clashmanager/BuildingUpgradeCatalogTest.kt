@@ -80,4 +80,33 @@ class BuildingUpgradeCatalogTest {
         assertNull(BuildingUpgradeCatalog.nextUpgrade("Wizard Tower", 17))
     }
 
+    @Test fun expandedDefensesExposeTownHallLevelCaps() {
+        assertEquals(16, BuildingUpgradeCatalog.maximumLevelAt("Air Defense", 18))
+        assertEquals(7, BuildingUpgradeCatalog.maximumLevelAt("Air Sweeper", 18))
+        assertEquals(13, BuildingUpgradeCatalog.maximumLevelAt("Bomb Tower", 18))
+        assertEquals(17, BuildingUpgradeCatalog.maximumLevelAt("Hidden Tesla", 18))
+        assertEquals(12, BuildingUpgradeCatalog.maximumLevelAt("Inferno Tower", 18))
+        assertEquals(7, BuildingUpgradeCatalog.maximumLevelAt("Eagle Artillery", 18))
+        assertEquals(5, BuildingUpgradeCatalog.maximumLevelAt("Monolith", 18))
+    }
+
+    @Test fun expandedCatalogPreservesResourceTypesAndUpgradeDurations() {
+        val airDefense = BuildingUpgradeCatalog.nextUpgrade("Air Defense", 15)
+        assertEquals(16, airDefense?.targetLevel)
+        assertEquals(26_000_000L, airDefense?.cost)
+        assertEquals("Gold", airDefense?.resource)
+
+        val monolith = BuildingUpgradeCatalog.nextUpgrade("Monolith", 4)
+        assertEquals(5, monolith?.targetLevel)
+        assertEquals(470_000L, monolith?.cost)
+        assertEquals("Dark Elixir", monolith?.resource)
+        assertEquals(1_296_000L, monolith?.durationSeconds)
+    }
+
+    @Test fun supportedBuildingNamesAreUniqueAndSorted() {
+        val names = BuildingUpgradeCatalog.supportedBuildingNames()
+        assertEquals(names.distinct().sorted(), names)
+        assertEquals(11, names.size)
+    }
+
 }
