@@ -143,6 +143,11 @@ fun ClashManagerApp() {
                 require(raw.isNotBlank()) { "The selected file is empty" }
                 require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "File is too large. Maximum supported size is 10 MB" }
                 val parsedExport = VillageExportParser.parse(raw)
+                val exportedTag = parsedExport.playerTag?.let(PlayerTagValidator::normalize)
+                val selectedTag = PlayerTagValidator.normalize(playerTag)
+                require(exportedTag == null || exportedTag == selectedTag) {
+                    "This export belongs to ${parsedExport.playerTag}, not the selected profile $playerTag"
+                }
                 val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
                 val collectionLines = parsedExport.categories.joinToString("\n") { category ->
                     "${category.key}: ${category.items.size} unique entries • ${category.totalCount} total"
