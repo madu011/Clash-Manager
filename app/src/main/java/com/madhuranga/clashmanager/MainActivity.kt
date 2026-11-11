@@ -113,6 +113,10 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
             }
             result.onSuccess { manifest ->
                 latestManifest = manifest
+                if (isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, manifest.minimumSupportedVersionCode)) {
+                    tab = "Updates"
+                    apkUpdateStatus = "A required app update is available. Update Clash Manager to continue using the latest supported version."
+                }
                 updateCheckStatus = "Release manifest found • App version ${manifest.latestVersionName} • Data pack ${manifest.dataPackVersion}"
                 if (manifest.latestVersionCode > BuildConfig.VERSION_CODE) {
                     val lastNotifiedVersion = prefs.getInt("last_update_notification_version", 0)
@@ -310,7 +314,12 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 listOf("Dashboard", "Planner", "Attack", "Village", "Updates", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
-                        onClick = { tab = item },
+                        onClick = {
+                            val mustUpdate = latestManifest?.let {
+                                isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, it.minimumSupportedVersionCode)
+                            } == true
+                            tab = if (mustUpdate && item != "Updates") "Updates" else item
+                        },
                         icon = { Icon(Icons.Default.Construction, contentDescription = null) },
                         label = { Text(item) }
                     )
@@ -401,6 +410,16 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                 if (dataPackStatus.isNotBlank()) Text(dataPackStatus, color = Blue, fontSize = 12.sp)
                                 HorizontalDivider(color = Color(0xFF354052))
                                 Text("APP UPDATES", color = Blue, fontWeight = FontWeight.Bold)
+                                if (latestManifest?.let {
+                                        isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, it.minimumSupportedVersionCode)
+                                    } == true) {
+                                    Text(
+                                        "REQUIRED UPDATE: This app version is no longer supported. Install the available update to continue.",
+                                        color = Gold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                }
                                 if (latestManifest != null && latestManifest!!.latestVersionCode > BuildConfig.VERSION_CODE) {
                                     Button(
                                         onClick = { downloadLatestApk() },
