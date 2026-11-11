@@ -184,7 +184,7 @@ fun ClashManagerApp() {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.AccountTree, contentDescription = null, tint = Gold, modifier = Modifier.size(28.dp))
+                                    Icon(Icons.Default.Construction, contentDescription = null, tint = Gold, modifier = Modifier.size(28.dp))
                                     Spacer(Modifier.width(9.dp))
                                     Column {
                                         Text("VILLAGE DATA IMPORT", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
@@ -198,7 +198,7 @@ fun ClashManagerApp() {
                                     colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Page),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Icon(Icons.Default.FileUpload, contentDescription = null)
+                                    Icon(Icons.Default.Add, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
                                     Text("IMPORT VILLAGE JSON", fontWeight = FontWeight.Bold)
                                 }
