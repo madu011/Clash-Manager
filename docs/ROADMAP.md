@@ -2,45 +2,59 @@
 
 Developer: **Madhuranga Yasanath**
 
-## Phase 1 — Android tracker foundation
+## Product direction
+Clash Manager is an **online-first, automatic village analysis app** for any Clash of Clans player. A player enters their own Player Tag; the app fetches the public profile data available through an approved API, then generates and refreshes upgrade and recovery recommendations. Do not present manually entered village fields as a substitute for automatic syncing.
+
+## Phase 1 — Android foundation
 - [x] Native Compose dashboard
-- [x] Local builder and laboratory task countdowns
-- [x] Progress bars and task completion
-- [x] Local task persistence
-- [x] CI debug APK workflow
-- [ ] Device notification scheduling and rescheduling after reboot
+- [x] Player tag profile entry (local profile selection only; not live sync)
+- [x] Builder and laboratory countdown UI prototype
+- [x] GitHub Actions debug APK workflow
+- [ ] Replace the current offline Village Analyzer screen with online loading, sync, error, and data-coverage states
+- [ ] Account/profile data refresh and caching policy
 - [ ] Unit and UI tests
 
-## Phase 2 — Village profile and recovery engine
-- [ ] Player tag validation and profile entry
-- [ ] Secure backend for Supercell API requests
-- [ ] Store API token only as a backend secret; never in the APK or repository
-- [ ] Parse available player/village data
-- [ ] Clearly label fields not provided by the official API
-- [ ] Recovery scoring and upgrade priority rules
-- [ ] Resource cost and duration catalog with game-version updates
+## Phase 2 — Online player data
+- [ ] Create a secure backend service for Supercell API requests
+- [ ] Configure the official API token as a backend secret; never embed it in the APK or commit it
+- [ ] Validate and normalize player tags on the backend
+- [ ] Fetch player profile automatically by tag
+- [ ] Fetch and map API-provided Town Hall, heroes, troops, spells, hero equipment, achievements, and other supported fields
+- [ ] Show last sync time, refresh state, and clear errors for invalid tags, rate limits, or service outages
+- [ ] Keep player data isolated by profile; do not hard-code any player's tag
+- [ ] Clearly disclose data the official API does not expose
 
-## Phase 3 — Smart planning
-- [ ] Builder availability and assignment planner
-- [ ] Laboratory and hero upgrade planner
-- [ ] Resource targets and daily task checklist
-- [ ] User-editable recommendations
-- [ ] Notifications for task completion
+## Phase 3 — Automatic analysis and planning
+- [ ] Build a versioned game-data catalogue for upgrade levels, Town Hall caps, costs, and durations
+- [ ] Analyze API-provided hero, troop, spell, and equipment progression automatically
+- [ ] Generate rush/recovery scoring with explainable priorities
+- [ ] Build resource and upgrade plans using verified game data
+- [ ] Recalculate recommendations after each successful sync or game-data update
+- [ ] Mark unavailable building/base fields as unknown rather than guessing
+- [ ] Support optional in-game village-data export import for building levels and running upgrades, if the player chooses to provide it
 
-## Phase 4 — Base design studio
+## Phase 4 — Timers and notifications
+- [ ] Builder, laboratory, and hero timer planning where reliable start/duration data is available
+- [ ] Reminders and completion notifications
+- [ ] Clearly distinguish user-confirmed timers from API-sourced data
+- [ ] Reconcile timers after device restart and app reinstall
+
+## Phase 5 — Base design studio
 - [ ] Import supported base links / layouts where technically possible
 - [ ] Visual grid editor and building inventory
 - [ ] Layout templates for war, farming, trophy, and hybrid
-- [ ] Validate available building counts against the player's town hall
+- [ ] Validate building inventory only when the required base data is available
 - [ ] Export a supported in-game layout link only where the game format allows it
 - [ ] Otherwise export a visual placement guide
 
-## Phase 5 — Quality and release
+## Phase 6 — Quality and release
 - [ ] Backup and restore
 - [ ] Accessibility and localization
 - [ ] Automated tests
 - [ ] Signed release APK / AAB
-- [ ] Privacy policy and API compliance review
+- [ ] Privacy policy, data retention rules, and API compliance review
 
-## API and security notes
-The official Clash of Clans API is read-only. Do not automate gameplay, modify game memory, or claim that the app can place buildings or start upgrades in the game. API availability and returned fields must be checked against current official documentation. Never request or store a user's game login password.
+## Important API limitations and security
+The official Clash of Clans API is read-only. Player-tag lookups can provide profile information such as Town Hall level, heroes, troops, spells, and hero equipment, but do not provide a complete live village snapshot. In particular, building levels, walls, traps, current resources, and live builder/research countdowns are not all available from the public player endpoint. Do not fabricate missing values or claim full automatic base scanning from a tag alone.
+
+If deeper base data is needed, investigate an optional player-initiated in-game village-data export/import flow and explain exactly which fields it supplies. Never ask for a Supercell ID password or account credentials. Never automate gameplay, modify game memory, or claim the app can place buildings or start upgrades. The official API token must stay on the backend and be restricted to the backend's allowed IP address.
