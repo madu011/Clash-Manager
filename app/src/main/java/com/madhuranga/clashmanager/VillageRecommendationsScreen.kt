@@ -26,12 +26,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 
 private val AnalyzerGold = Color(0xFFFFC857)
 private val AnalyzerMuted = Color(0xFF9AA8BA)
 private val AnalyzerPanel = Color(0xFF1A2230)
 
 private data class BuildingTargetInput(val name: String, val current: Int, val target: Int)
+
+private data class UpgradeEstimate(val name: String, val cost: Long?, val durationSeconds: Long?, val missingLevels: List<Int>)
+
+private fun estimateUpgrades(targets: List<BuildingTargetInput>): List<UpgradeEstimate> =
+    targets.map { target ->
+        val missing = (target.current + 1..target.target).filter { level ->
+            BuildingUpgradeCatalog.nextUpgrade(target.name, level - 1) == null
+        }
+        val steps = (target.current + 1..target.target).mapNotNull { level ->
+            BuildingUpgradeCatalog.nextUpgrade(target.name, level - 1)
+        }
+        val complete = missing.isEmpty()
+        UpgradeEstimate(
+            name = target.name,
+            cost = if (complete) steps.sumOf { it.cost } else null,
+            durationSeconds = if (complete) steps.sumOf { it.durationSeconds } else null,
+            missingLevels = missing
+        )
+    }
+
+private fun formatDuration(totalSeconds: Long): String {
+    val days = totalSeconds / 86400
+    val hours = (totalSeconds % 86400) / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    return listOfNotNull(
+        if (days > 0) "${days}d" else null,
+        if (hours > 0) "${hours}h" else null,
+        if (minutes > 0) "${minutes}m" else null
+    ).ifEmpty { listOf("<1m") }.joinToString(" ")
+}
 
 private fun parseBuildingTargets(input: String): List<BuildingTargetInput>? {
     if (input.isBlank()) return emptyList()
@@ -67,6 +98,7 @@ fun VillageRecommendationsScreen(
         mutableStateOf(emptyList<UpgradeRecommendation>())
     }
     var validationMessage by remember(playerTag) { mutableStateOf("") }
+    var upgradeEstimates by remember(playerTag) { mutableStateOf(emptyList<UpgradeEstimate>()) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -149,6 +181,7 @@ fun VillageRecommendationsScreen(
                             recommendations = emptyList()
                         }
                         else -> {
+                            upgradeEstimates = estimateUpgrades(parsedTargets)
                             recommendations = VillageAnalyzer.analyze(
                                 VillageSnapshot(
                                     playerTag = playerTag,
@@ -173,6 +206,23 @@ fun VillageRecommendationsScreen(
             }
             if (validationMessage.isNotBlank()) {
                 Text(validationMessage, color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+            }
+            if (upgradeEstimates.isNotEmpty()) {
+                Text("VERIFIED UPGRADE ESTIMATES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Text("Only complete, verified catalog ranges are totaled. Time is cumulative builder time.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                upgradeEstimates.forEach { estimate ->
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(estimate.name, color = Color.White, fontWeight = FontWeight.Bold)
+                            if (estimate.cost != null && estimate.durationSeconds != null) {
+                                Text("Cost: ${String.format(Locale.US, "%,d", estimate.cost)} Gold", color = AnalyzerGold)
+                                Text("Builder time: ${formatDuration(estimate.durationSeconds)}", color = AnalyzerMuted)
+                            } else {
+                                Text("Estimate unavailable for level(s): ${estimate.missingLevels.joinToString()}. Catalog data is incomplete.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
             }
             recommendations.forEach { recommendation ->
                 Surface(
