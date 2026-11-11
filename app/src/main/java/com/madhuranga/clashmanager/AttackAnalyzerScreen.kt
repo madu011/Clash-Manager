@@ -70,6 +70,13 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         hasScreenshot = screenshotUri != null,
                         notes = notes
                     )
+                    val imageError = screenshotUri?.let { uri ->
+                        val imageSize = runCatching {
+                            context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length }
+                        }.getOrNull()
+                        AttackScreenshotValidator.validate(context.contentResolver.getType(uri), imageSize)
+                    }
+                    if (imageError != null) validationErrors = validationErrors + imageError
                     prepared = validationErrors.isEmpty()
                 }, enabled = true, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))) {
                     Text("PREPARE ANALYSIS", fontWeight = FontWeight.Bold)
