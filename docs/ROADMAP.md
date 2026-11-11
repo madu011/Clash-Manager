@@ -3,58 +3,57 @@
 Developer: **Madhuranga Yasanath**
 
 ## Product direction
-Clash Manager is an **online-first, automatic village analysis app** for any Clash of Clans player. A player enters their own Player Tag; the app fetches the public profile data available through an approved API, then generates and refreshes upgrade and recovery recommendations. Do not present manually entered village fields as a substitute for automatic syncing.
+Clash Manager is an online-first companion app for any Clash of Clans player. The app combines official public player-profile data with an optional player-initiated in-game village JSON export. It must never imply that a Player Tag alone reveals the complete village.
 
 ## Phase 1 — Android foundation
-- [x] Native Compose dashboard
-- [x] Player tag profile entry (local profile selection only; not live sync)
+- [x] Native Compose dashboard and player tag entry
 - [x] Builder and laboratory countdown UI prototype
 - [x] GitHub Actions debug APK workflow
-- [ ] Replace the current offline Village Analyzer screen with online loading, sync, error, and data-coverage states
-- [ ] Account/profile data refresh and caching policy
-- [ ] Unit and UI tests
+- [x] Initial in-game village JSON file picker and local raw-file preservation
+- [x] Separate imported export storage keys per selected player tag
+- [ ] Validate the actual exported JSON schema using sample exports from different game versions
+- [ ] Parse all supported export fields into typed building, trap, wall, upgrade, hero, troop, spell, pet, and equipment models
+- [ ] Add export replacement, clear, and import history controls
 
-## Phase 2 — Online player data
-- [ ] Create a secure backend service for Supercell API requests
-- [ ] Configure the official API token as a backend secret; never embed it in the APK or commit it
-- [ ] Validate and normalize player tags on the backend
-- [ ] Fetch player profile automatically by tag
-- [ ] Fetch and map API-provided Town Hall, heroes, troops, spells, hero equipment, achievements, and other supported fields
-- [ ] Show last sync time, refresh state, and clear errors for invalid tags, rate limits, or service outages
-- [ ] Keep player data isolated by profile; do not hard-code any player's tag
-- [ ] Clearly disclose data the official API does not expose
+## Phase 2 — Online player profile
+- [ ] Secure backend service for Supercell API requests
+- [ ] Keep official API token only as backend secret; never in APK or repository
+- [ ] Fetch player profile by tag and refresh on demand / scheduled cadence
+- [ ] Map supported Town Hall, heroes, troops, spells, equipment, achievements, and profile fields
+- [ ] Show last successful sync, loading, invalid-tag, rate-limit, and service-error states
+- [ ] Keep profiles and imported data isolated by player tag
 
-## Phase 3 — Automatic analysis and planning
-- [ ] Build a versioned game-data catalogue for upgrade levels, Town Hall caps, costs, and durations
-- [ ] Analyze API-provided hero, troop, spell, and equipment progression automatically
-- [ ] Generate rush/recovery scoring with explainable priorities
-- [ ] Build resource and upgrade plans using verified game data
-- [ ] Recalculate recommendations after each successful sync or game-data update
-- [ ] Mark unavailable building/base fields as unknown rather than guessing
-- [ ] Support optional in-game village-data export import for building levels and running upgrades, if the player chooses to provide it
+## Phase 3 — Automatic village analysis
+- [ ] Merge official API data with the player's imported village export
+- [ ] Parse building inventory and levels, walls, traps, active upgrades, and other fields only when present in the export schema
+- [ ] Track provenance per field: Official API, In-game Export, or unavailable
+- [ ] Detect rush gaps using versioned Town Hall maximum-level data
+- [ ] Generate explainable upgrade priorities, builder/lab plans, resource targets, and recovery progress
+- [ ] Recalculate after a successful sync or new export import
+- [ ] Never invent missing values or claim the app can read live timers that neither source provides
 
-## Phase 4 — Timers and notifications
-- [ ] Builder, laboratory, and hero timer planning where reliable start/duration data is available
-- [ ] Reminders and completion notifications
-- [ ] Clearly distinguish user-confirmed timers from API-sourced data
-- [ ] Reconcile timers after device restart and app reinstall
+## Phase 4 — Game-inspired interface
+- [ ] Create an original fantasy strategy UI inspired by the visual language of village-building games: stone/wood panels, bright resource accents, bold upgrade buttons, shield/building/unit category icons, progress bars, and compact status badges
+- [ ] Design original icons and illustrations for Dashboard, Village, Army, Laboratory, Builders, Resources, Base Layouts, and Settings
+- [ ] Use consistent button states, touch targets, accessible contrast, and clear labels
+- [ ] Do not copy Supercell logos, proprietary artwork, exact game screenshots, or extracted game assets; use original assets and respect the Fan Content Policy
 
 ## Phase 5 — Base design studio
-- [ ] Import supported base links / layouts where technically possible
-- [ ] Visual grid editor and building inventory
-- [ ] Layout templates for war, farming, trophy, and hybrid
-- [ ] Validate building inventory only when the required base data is available
+- [ ] Visual grid editor and building inventory driven by imported base data
+- [ ] War, farming, trophy, and hybrid layout guides
 - [ ] Export a supported in-game layout link only where the game format allows it
-- [ ] Otherwise export a visual placement guide
+- [ ] Otherwise provide a visual placement guide
 
 ## Phase 6 — Quality and release
+- [ ] Unit/UI tests including malformed and older export files
 - [ ] Backup and restore
 - [ ] Accessibility and localization
-- [ ] Automated tests
-- [ ] Signed release APK / AAB
-- [ ] Privacy policy, data retention rules, and API compliance review
+- [ ] Signed release APK/AAB
+- [ ] Privacy policy, data retention, and API compliance review
 
-## Important API limitations and security
-The official Clash of Clans API is read-only. Player-tag lookups can provide profile information such as Town Hall level, heroes, troops, spells, and hero equipment, but do not provide a complete live village snapshot. In particular, building levels, walls, traps, current resources, and live builder/research countdowns are not all available from the public player endpoint. Do not fabricate missing values or claim full automatic base scanning from a tag alone.
+## Data and API limitations
+The official Clash of Clans Player API returns profile progression including Town Hall, troops, heroes, spells, and hero equipment, but does not provide a complete live base snapshot. Public references describe the in-game **Settings → More Settings → Export village data** JSON export as the route for additional village state, including buildings, traps, walls, and ongoing upgrades. The exact export schema must be verified against real files and supported game versions before enabling automated scoring.
 
-If deeper base data is needed, investigate an optional player-initiated in-game village-data export/import flow and explain exactly which fields it supplies. Never ask for a Supercell ID password or account credentials. Never automate gameplay, modify game memory, or claim the app can place buildings or start upgrades. The official API token must stay on the backend and be restricted to the backend's allowed IP address.
+The current import UI only selects a JSON file, validates that it is a JSON object, stores the raw content locally under the selected player profile, and shows a structural summary. It does **not yet parse building levels or feed the analyzer**. Do not claim that full import-based analysis is complete until schema-specific parsing and tests are implemented.
+
+The official API is read-only. Never request Supercell ID passwords or account credentials. Never automate gameplay, modify game memory, or claim the app can place buildings or start upgrades. Keep API tokens on the backend and restrict them to the backend's allowed IP address.
