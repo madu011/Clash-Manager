@@ -45,4 +45,22 @@ class BuildingUpgradeCatalogTest {
         assertNull(BuildingUpgradeCatalog.maximumLevelAt(1000008L, 0))
         assertNull(BuildingUpgradeCatalog.maximumLevelAt(1000008L, 19))
     }
+
+    @Test fun mortarTownHallUnlocksAndUpgradeCostsAreVerified() {
+        assertNull(BuildingUpgradeCatalog.maximumLevelAt(1000013L, 2))
+        assertEquals(1, BuildingUpgradeCatalog.maximumLevelAt(1000013L, 3))
+        assertEquals(10, BuildingUpgradeCatalog.maximumLevelAt(1000013L, 11))
+        assertEquals(18, BuildingUpgradeCatalog.maximumLevelAt(1000013L, 18))
+
+        val step = BuildingUpgradeCatalog.nextUpgrade("Mortar", 17)
+        assertEquals(18, step?.targetLevel)
+        assertEquals(21_000_000L, step?.cost)
+        assertEquals("Gold", step?.resource)
+        assertEquals(1_080_000L, step?.durationSeconds)
+    }
+
+    @Test fun mortarDoesNotIncludeSuperchargeAsNormalUpgradeLevels() {
+        assertNull(BuildingUpgradeCatalog.nextUpgrade("Mortar", 18))
+    }
+
 }
