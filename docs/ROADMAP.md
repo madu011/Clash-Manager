@@ -44,6 +44,16 @@ Clash Manager is an online-first companion app for any Clash of Clans player. Th
 - [ ] Export a supported in-game layout link only where the game format allows it
 - [ ] Otherwise provide a visual placement guide
 
+## Phase 6 — Beginner-friendly experience
+- [x] Add a first-use dashboard quick-start card with direct links to Village setup, upgrade tracking, and Help
+- [x] Explain Attack planning limitations before users enter attack details
+- [ ] Replace technical labels and unexplained abbreviations with plain-language labels throughout every screen
+- [ ] Add a first-run guided walkthrough that can be skipped and reopened from Help
+- [ ] Add consistent empty states, inline examples, validation messages, and recovery actions to every form
+- [ ] Add accessible touch targets, screen-reader descriptions, scalable text, and contrast checks
+- [ ] Localize the complete interface and help content (English, Sinhala, Serbian first)
+- [ ] Run usability checks with new players and revise confusing flows
+
 ## Phase 6 — Quality and release
 - [ ] Unit/UI tests including malformed and older export files
 - [ ] Backup and restore
