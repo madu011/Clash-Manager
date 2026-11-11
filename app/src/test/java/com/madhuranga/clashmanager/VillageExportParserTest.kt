@@ -18,6 +18,16 @@ class VillageExportParserTest {
         assertTrue(result.categories.any { it.key == "units2" })
     }
 
+
+    @Test fun recognisesAuxiliaryAndBuilderBaseExportSections() {
+        val json = """{"helpers":{"builder":1},"house_parts":[100,101],"skins":[200,201],"sceneries":[],"boosts":{"clock_tower":1},"skins2":[300],"sceneries2":[]}"""
+        val result = VillageExportParser.parse(json)
+        assertEquals(7, result.sections.size)
+        assertEquals(2, result.sections.first { it.key == "house_parts" }.entryCount)
+        assertEquals(0, result.sections.first { it.key == "sceneries" }.entryCount)
+        assertEquals("fields", result.sections.first { it.key == "boosts" }.shape)
+    }
+
     @Test fun rejectsJsonWithoutRecognisedCollections() {
         try {
             VillageExportParser.parse("""{"tag":"#ABC","unknown":[]}""")
