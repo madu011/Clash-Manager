@@ -2,7 +2,7 @@ package com.madhuranga.clashmanager
 
 import android.os.Bundle
 import android.content.Intent
-import android.net.Uri
+import android.net.Uri\nimport java.io.ByteArrayOutputStream\nimport java.io.InputStream
 import android.os.Build
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -93,10 +93,10 @@ fun ClashManagerApp() {
     var tab by remember { mutableStateOf("Dashboard") }
     val profileKey = playerTag.ifBlank { "unselected" }
     var thLevel by remember(profileKey) {
-        mutableStateOf(prefs.getString("town_hall_level_$profileKey", "10") ?: "10")
+        mutableStateOf(prefs.getString("town_hall_level_$profileKey", "") ?: "")
     }
     var freeBuilders by remember(profileKey) {
-        mutableStateOf(prefs.getString("available_builders_$profileKey", "1") ?: "1")
+        mutableStateOf(prefs.getString("available_builders_$profileKey", "0") ?: "0")
     }
     var rushedBuildings by remember(profileKey) {
         mutableStateOf(prefs.getString("rushed_buildings_$profileKey", "") ?: "")
@@ -220,14 +220,14 @@ fun ClashManagerApp() {
                             Text("Enter any player's tag to personalise this device's village planner.", color = Muted, fontSize = 12.sp)
                             OutlinedTextField(
                                 value = tagInput,
-                                onValueChange = { value -> tagInput = value.uppercase().filter { it.isLetterOrDigit() || it == '#' }.take(10) },
+                                onValueChange = { value -> tagInput = PlayerTagValidator.normalize(value) },
                                 label = { Text("Player Tag (e.g. #ABC123)") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Button(
                                 onClick = { playerTag = tagInput.trim(); prefs.edit().putString("player_tag", playerTag).apply() },
-                                enabled = tagInput.isBlank() || tagInput.matches(Regex("#?[0289PYLQGRJCUV]{3,10}"))
+                                enabled = tagInput.isBlank() || PlayerTagValidator.isValid(tagInput)
                             ) { Text("Save player profile") }
                             Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Muted, fontSize = 11.sp)
                         }
