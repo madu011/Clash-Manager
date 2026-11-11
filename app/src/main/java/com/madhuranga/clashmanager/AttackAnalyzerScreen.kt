@@ -5,6 +5,8 @@ import androidx.compose.ui.platform.LocalContext
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,7 +45,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                 Text("Plan attacks using your selected player profile. No separate enemy account login is needed.", color = muted, fontSize = 12.sp)
                 Text(if (playerTag.isBlank()) "Select your Player Tag on Dashboard first." else "Your profile: $playerTag", color = Color.White, fontSize = 12.sp)
                 Text("ATTACK MODE", color = gold, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     listOf("Clan War", "CWL", "Multiplayer", "Friendly").forEach {
                         FilterChip(selected = mode == it, onClick = { mode = it; prepared = false }, label = { Text(it, fontSize = 10.sp) })
                     }
@@ -51,7 +53,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                 OutlinedTextField(ownTownHall, { ownTownHall = it.filter(Char::isDigit).take(2) }, label = { Text("Your Town Hall level") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(targetTownHall, { targetTownHall = it.filter(Char::isDigit).take(2) }, label = { Text("Target Town Hall level") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Text("ATTACK GOAL", color = gold, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("1-star", "2-star", "3-star").forEach {
                         FilterChip(selected = goal == it, onClick = { goal = it; prepared = false }, label = { Text(it) })
                     }
