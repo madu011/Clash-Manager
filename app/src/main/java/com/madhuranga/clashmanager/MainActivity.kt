@@ -87,6 +87,10 @@ fun ClashManagerApp() {
     var rushedBuildings by remember { mutableStateOf(prefs.getString("rushed_buildings", "") ?: "") }
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
+    LaunchedEffect(playerTag) {
+        exportSummary = prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: ""
+        exportError = ""
+    }
     val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             runCatching {
@@ -192,9 +196,11 @@ fun ClashManagerApp() {
                                     }
                                 }
                                 Text("In Clash of Clans, open Settings → More Settings → Export village data. Then select the exported JSON file below.", color = Color.White, fontSize = 13.sp)
+                                if (playerTag.isBlank()) Text("Save a Player Tag first to keep this export linked to the correct profile.", color = Gold, fontSize = 12.sp)
                                 Button(
                                     onClick = { importVillageExport.launch(arrayOf("application/json", "text/json", "text/plain")) },
                                     modifier = Modifier.fillMaxWidth(),
+                                    enabled = playerTag.isNotBlank(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Page),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
