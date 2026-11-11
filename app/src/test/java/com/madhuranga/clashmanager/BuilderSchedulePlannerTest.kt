@@ -67,4 +67,19 @@ class BuilderSchedulePlannerTest {
             )
         )
     }
+    @Test fun aggregatesCostsSeparatelyForGoldAndDarkElixir() {
+        val result = BuilderSchedulePlanner.create(
+            listOf(
+                BuilderSchedulePlanner.Target("Cannon", 1, 2),
+                BuilderSchedulePlanner.Target("Monolith", 4, 5)
+            ),
+            builderCount = 2
+        )!!
+
+        assertEquals(1_000L, result.totalCosts["Gold"])
+        assertEquals(470_000L, result.totalCosts["Dark Elixir"])
+        assertEquals(setOf("Gold", "Dark Elixir"), result.totalCosts.keys)
+    }
+
+
 }
