@@ -385,7 +385,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("⚔️  CLASH MANAGER", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
-                                    Icon(Icons.Default.Shield, contentDescription = "Village shield", tint = Gold, modifier = Modifier.size(30.dp))
+                                    Text("🛡️", fontSize = 26.sp)
                                 }
                                 Text("VILLAGE COMMAND CENTER", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
                                 Text("Plan  •  Analyze  •  Manage  •  Improve", color = Color(0xFFFFD994), fontSize = 12.sp, fontWeight = FontWeight.Bold)
