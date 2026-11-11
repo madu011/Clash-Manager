@@ -38,7 +38,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -82,6 +85,47 @@ fun ClashManagerApp() {
                 GameDataPackParser.parse(rawPack, version)
             } else null
         }.getOrNull()
+    }
+    val updateScope = rememberCoroutineScope()
+    var updateCheckStatus by remember { mutableStateOf("Not checked yet") }
+    var latestManifest by remember { mutableStateOf<UpdateManifest?>(null) }
+    var isCheckingUpdates by remember { mutableStateOf(false) }
+    var isInstallingDataPack by remember { mutableStateOf(false) }
+    var dataPackStatus by remember { mutableStateOf("") }
+    fun checkForUpdates() {
+        if (isCheckingUpdates) return
+        isCheckingUpdates = true
+        updateCheckStatus = "Checking for updates..."
+        updateScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching { UpdateManifestClient().fetch() }
+            }
+            result.onSuccess { manifest ->
+                latestManifest = manifest
+                updateCheckStatus = "Release manifest found • App version ${manifest.latestVersionName} • Data pack ${manifest.dataPackVersion}"
+            }.onFailure { error ->
+                latestManifest = null
+                updateCheckStatus = error.message ?: "Could not check for updates"
+            }
+            isCheckingUpdates = false
+        }
+    }
+    fun installLatestDataPack() {
+        val manifest = latestManifest ?: return
+        if (isInstallingDataPack) return
+        isInstallingDataPack = true
+        dataPackStatus = "Downloading and verifying game data..."
+        updateScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                GameDataPackInstaller(context).install(manifest)
+            }
+            result.onSuccess {
+                dataPackStatus = "Game data pack ${manifest.dataPackVersion} installed. Reopen the Village tab to use the updated catalogue."
+            }.onFailure { error ->
+                dataPackStatus = error.message ?: "Game data installation failed"
+            }
+            isInstallingDataPack = false
+        }
     }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     LaunchedEffect(Unit) {
@@ -295,10 +339,23 @@ fun ClashManagerApp() {
                                     color = Color.White,
                                     fontSize = 13.sp
                                 )
-                                Text("Game data packs are designed to update independently from the Android app. Downloading and activating them from this screen is not enabled yet.", color = Muted, fontSize = 12.sp)
+                                Button(
+                                    onClick = { checkForUpdates() },
+                                    enabled = !isCheckingUpdates,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { Text(if (isCheckingUpdates) "Checking..." else "Check for updates") }
+                                Text(updateCheckStatus, color = Muted, fontSize = 12.sp)
+                                if (latestManifest != null && latestManifest!!.dataPackVersion > (installedGameDataPack?.version ?: 0)) {
+                                    Button(
+                                        onClick = { installLatestDataPack() },
+                                        enabled = !isInstallingDataPack,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { Text(if (isInstallingDataPack) "Installing game data..." else "Download game data pack") }
+                                }
+                                if (dataPackStatus.isNotBlank()) Text(dataPackStatus, color = Blue, fontSize = 12.sp)
                                 HorizontalDivider(color = Color(0xFF354052))
                                 Text("APP UPDATES", color = Blue, fontWeight = FontWeight.Bold)
-                                Text("In-app APK update checks and downloads are not active yet. A stable protected release signing key and published release manifest are required before updates can be safely offered.", color = Muted, fontSize = 12.sp)
+                                Text("The app can now check the trusted release manifest. APK downloading and installation are not enabled yet; a protected release signing key and a published, verified APK are still required.", color = Muted, fontSize = 12.sp)
                                 Text("Android will always ask you to confirm an APK installation. Clash Manager will never install an update silently.", color = Muted, fontSize = 12.sp)
                             }
                         }
