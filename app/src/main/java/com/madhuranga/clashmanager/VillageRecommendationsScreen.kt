@@ -145,6 +145,11 @@ fun VillageRecommendationsScreen(
                 supportingText = { Text("Example: Archer Tower, Cannon — only enter buildings you have checked.") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Text(
+                "Verified catalog: ${BuildingUpgradeCatalog.supportedBuildingNames().joinToString()}",
+                color = AnalyzerMuted,
+                style = MaterialTheme.typography.bodySmall
+            )
             OutlinedTextField(
                 value = buildingTargets,
                 onValueChange = { onBuildingTargetsChange(it.take(500)) },
