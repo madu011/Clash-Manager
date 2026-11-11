@@ -25,6 +25,13 @@ data class UpgradeRecommendation(
 )
 
 object VillageAnalyzer {
+    private fun targetPriority(base: Int, current: Int, target: Int): Int {
+        // A larger remaining level gap gets a modestly higher planning priority.
+        // The cap prevents a manually entered target from dominating every category.
+        val remainingLevels = (target - current).coerceAtLeast(0)
+        return base + remainingLevels.coerceAtMost(8)
+    }
+
     fun analyze(village: VillageSnapshot): List<UpgradeRecommendation> {
         val th = village.townHallLevel.coerceIn(1, 18)
         val result = mutableListOf<UpgradeRecommendation>()
@@ -61,31 +68,41 @@ object VillageAnalyzer {
 
         village.buildingLevels.forEach { (building, level) ->
             val target = village.buildingTargetLevels[building] ?: return@forEach
-            if (level < target) result += UpgradeRecommendation(
-                title = "Plan $building upgrade",
-                reason = "Current level $level; your selected target is $target.",
-                priority = 78,
-                category = "Buildings"
-            )
+            if (level < target) {
+                val remaining = target - level
+                result += UpgradeRecommendation(
+                    title = "Plan $building upgrade",
+                    reason = "Current level $level; selected target $target ($remaining level(s) remaining).",
+                    priority = targetPriority(78, level, target),
+                    category = "Buildings"
+                )
+            }
         }
 
         village.heroLevels.forEach { (hero, level) ->
             val target = village.heroTargetLevels[hero] ?: return@forEach
-            if (level < target) result += UpgradeRecommendation(
-                title = "Plan $hero upgrade",
-                reason = "Current level $level; your selected target is $target.",
-                priority = 75,
-                category = "Heroes"
-            )
+            if (level < target) {
+                val remaining = target - level
+                result += UpgradeRecommendation(
+                    title = "Plan $hero upgrade",
+                    reason = "Current level $level; selected target $target ($remaining level(s) remaining).",
+                    priority = targetPriority(75, level, target),
+                    category = "Heroes"
+                )
+            }
         }
+
         village.troopLevels.forEach { (troop, level) ->
             val target = village.troopTargetLevels[troop] ?: return@forEach
-            if (level < target) result += UpgradeRecommendation(
-                title = "Plan $troop research",
-                reason = "Current level $level; your selected target is $target.",
-                priority = 72,
-                category = "Laboratory"
-            )
+            if (level < target) {
+                val remaining = target - level
+                result += UpgradeRecommendation(
+                    title = "Plan $troop research",
+                    reason = "Current level $level; selected target $target ($remaining level(s) remaining).",
+                    priority = targetPriority(72, level, target),
+                    category = "Laboratory"
+                )
+            }
         }
 
         result += UpgradeRecommendation(
