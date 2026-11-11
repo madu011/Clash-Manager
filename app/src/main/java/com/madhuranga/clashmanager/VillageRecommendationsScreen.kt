@@ -155,6 +155,7 @@ fun VillageRecommendationsScreen(
                         playerTag.isBlank() -> {
                             validationMessage = "Save a Player Tag before creating profile recommendations."
                             recommendations = emptyList()
+                            upgradeEstimates = emptyList()
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
