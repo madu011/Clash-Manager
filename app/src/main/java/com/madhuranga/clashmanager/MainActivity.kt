@@ -85,7 +85,7 @@ fun ClashManagerApp() {
     var thLevel by remember { mutableStateOf(prefs.getString("town_hall_level", "10") ?: "10") }
     var freeBuilders by remember { mutableStateOf(prefs.getString("available_builders", "1") ?: "1") }
     var rushedBuildings by remember { mutableStateOf(prefs.getString("rushed_buildings", "") ?: "") }
-    var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary", "") ?: "") }
+    var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
     val importVillageExport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
@@ -94,7 +94,7 @@ fun ClashManagerApp() {
                     ?: error("Could not read the selected file")
                 val json = JSONObject(raw)
                 val summary = summarizeVillageExport(json)
-                prefs.edit().putString("village_export_json", raw).putString("village_export_summary", summary).apply()
+                prefs.edit().putString("village_export_json_${playerTag.ifBlank { "unselected" }}", raw).putString("village_export_summary_${playerTag.ifBlank { "unselected" }}", summary).apply()
                 exportSummary = summary
                 exportError = ""
             }.onFailure { exportError = "Import failed: ${it.message ?: "Invalid JSON file"}" }
