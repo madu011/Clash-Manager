@@ -161,6 +161,7 @@ fun VillageRecommendationsScreen(
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
                             recommendations = emptyList()
+                            upgradeEstimates = emptyList()
                         }
                         builders == null || builders !in 0..6 -> {
                             validationMessage = "Enter available builders from 0 to 6."
