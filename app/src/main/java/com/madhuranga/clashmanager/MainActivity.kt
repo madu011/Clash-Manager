@@ -145,7 +145,7 @@ fun ClashManagerApp() {
     ) {
         Scaffold(containerColor = Page, bottomBar = {
             NavigationBar(containerColor = Panel) {
-                listOf("Dashboard", "Planner", "Village").forEach { item ->
+                listOf("Dashboard", "Planner", "Village", "Help").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
                         onClick = { tab = item },
@@ -245,7 +245,10 @@ fun ClashManagerApp() {
                         }
                     }
                 }
-                if (tab != "Village") {
+                if (tab == "Help") {
+                    item { HelpGuide() }
+                }
+                if (tab != "Village" && tab != "Help") {
 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
