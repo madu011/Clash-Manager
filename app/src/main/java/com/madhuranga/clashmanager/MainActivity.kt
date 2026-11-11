@@ -859,7 +859,6 @@ private fun HelpSection(title: String, body: String) {
 }
 
 @Composable
-@Composable
 private fun UpgradeCard(task: UpgradeTask, now: Long, onComplete: () -> Unit) {
     val remaining = task.remaining(now)
     val progress = task.progress(now)
