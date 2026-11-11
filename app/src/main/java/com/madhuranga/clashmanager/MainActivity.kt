@@ -453,6 +453,15 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 }
                 if (tab == "Dashboard") {
                     item {
+                        DashboardHeroCard(
+                            playerTag = playerTag,
+                            townHallLevel = thLevel,
+                            builders = freeBuilders,
+                            activeUpgrades = tasks.count { it.remaining(now) > 0 && it.category == "Builder" },
+                            onOpenVillage = { tab = "Village" }
+                        )
+                    }
+                    item {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text("QUICK COMMANDS", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
                             Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
@@ -818,6 +827,68 @@ item {
                 showAdd = false
             }
         )
+    }
+}
+
+@Composable
+private fun DashboardHeroCard(
+    playerTag: String,
+    townHallLevel: String,
+    builders: String,
+    activeUpgrades: Int,
+    onOpenVillage: () -> Unit
+) {
+    Card(
+        onClick = onOpenVillage,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFD5A34B)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+    ) {
+        Box(
+            Modifier.fillMaxWidth().background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    listOf(Color(0xFF526783), Color(0xFF263448), Color(0xFF171E2A))
+                )
+            )
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(11.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("CLASH MANAGER", color = Color(0xFFFFD36E), fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                        Text("WELCOME, CHIEF!", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                        Text("Your village command center", color = Color(0xFFE0C99E), fontSize = 11.sp)
+                    }
+                    Surface(
+                        color = Color(0xFF8C5B24),
+                        shape = RoundedCornerShape(18.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD36E))
+                    ) {
+                        Text("🏰", modifier = Modifier.padding(horizontal = 13.dp, vertical = 11.dp), fontSize = 34.sp)
+                    }
+                }
+                HorizontalDivider(color = Color(0x77D5A34B), thickness = 1.dp)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    VillageStatTile("TOWN HALL", townHallLevel.ifBlank { "—" }, "🏰", Modifier.weight(1f))
+                    VillageStatTile("BUILDERS", builders.ifBlank { "—" }, "🛠️", Modifier.weight(1f))
+                    VillageStatTile("ACTIVE", activeUpgrades.toString(), "⚒️", Modifier.weight(1f))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        if (playerTag.isBlank()) "PLAYER PROFILE NOT SET" else playerTag,
+                        color = Color(0xFFD9E0EA),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text("VIEW VILLAGE  ›", color = Color(0xFFFFD36E), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        }
     }
 }
 
