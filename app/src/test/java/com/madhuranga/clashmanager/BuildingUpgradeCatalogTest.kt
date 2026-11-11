@@ -63,4 +63,21 @@ class BuildingUpgradeCatalogTest {
         assertNull(BuildingUpgradeCatalog.nextUpgrade("Mortar", 18))
     }
 
+
+    @Test fun wizardTowerUnlocksAndUpgradeCostsAreVerified() {
+        assertNull(BuildingUpgradeCatalog.maximumLevelAt(1000011L, 4))
+        assertEquals(2, BuildingUpgradeCatalog.maximumLevelAt(1000011L, 5))
+        assertEquals(17, BuildingUpgradeCatalog.maximumLevelAt(1000011L, 18))
+
+        val step = BuildingUpgradeCatalog.nextUpgrade("Wizard Tower", 16)
+        assertEquals(17, step?.targetLevel)
+        assertEquals(14_000_000L, step?.cost)
+        assertEquals("Gold", step?.resource)
+        assertEquals(475_200L, step?.durationSeconds)
+    }
+
+    @Test fun wizardTowerDoesNotInventLevelAfterVerifiedMaximum() {
+        assertNull(BuildingUpgradeCatalog.nextUpgrade("Wizard Tower", 17))
+    }
+
 }
