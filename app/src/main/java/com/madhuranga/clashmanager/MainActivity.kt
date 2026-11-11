@@ -333,14 +333,14 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                     val destination = when (item) {
                         "Home" -> "Dashboard"
                         "Tools" -> "Planner"
-                        "More" -> "Help"
+                        "More" -> "More"
                         else -> item
                     }
                     NavigationBarItem(
                         selected = when (item) {
                             "Home" -> tab == "Dashboard"
                             "Tools" -> tab == "Planner"
-                            "More" -> tab == "Help" || tab == "Updates"
+                            "More" -> tab == "More"
                             else -> tab == destination
                         },
                         onClick = {
@@ -463,7 +463,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
                                 GameShortcut("⏱️", "Timers", Modifier.weight(1f)) { tab = "Dashboard" }
                                 GameShortcut("📊", "Reports", Modifier.weight(1f)) { tab = "Village" }
-                                GameShortcut("📦", "More", Modifier.weight(1f)) { tab = "Help" }
+                                GameShortcut("📦", "More", Modifier.weight(1f)) { tab = "More" }
                             }
                         }
                     }
@@ -668,10 +668,30 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         }
                     }
                 }
+                if (tab == "More") {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Panel),
+                            shape = RoundedCornerShape(20.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, StoneEdge)
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("MORE COMMANDS", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                Text("Settings, app updates and player guidance.", color = Muted, fontSize = 12.sp)
+                                Button(onClick = { tab = "Updates" }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("⬆️  UPDATE CENTER")
+                                }
+                                OutlinedButton(onClick = { tab = "Help" }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("📖  HELP & USER GUIDE")
+                                }
+                            }
+                        }
+                    }
+                }
                 if (tab == "Help") {
                     item { HelpGuide() }
                 }
-                if (tab != "Village" && tab != "Help" && tab != "Attack") {
+                if (tab != "Village" && tab != "Help" && tab != "Attack" && tab != "More") {
 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
