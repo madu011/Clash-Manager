@@ -325,8 +325,20 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             } == true
                             tab = if (mustUpdate && item != "Updates") "Updates" else item
                         },
-                        icon = { Icon(Icons.Default.Construction, contentDescription = null) },
-                        label = { Text(item) }
+                        icon = {
+                            Text(
+                                text = when (item) {
+                                    "Dashboard" -> "🏰"
+                                    "Planner" -> "🛠️"
+                                    "Attack" -> "⚔️"
+                                    "Village" -> "🏡"
+                                    "Updates" -> "⬆️"
+                                    else -> "📖"
+                                },
+                                fontSize = 17.sp
+                            )
+                        },
+                        label = { Text(item, fontSize = 9.sp, maxLines = 1) }
                     )
                 }
             }
