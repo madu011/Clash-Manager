@@ -17,6 +17,7 @@ class GameDataCatalogPackTest {
             """{"schemaVersion":1,"dataPackVersion":2,"items":[{"dataId":1000008,"name":"Cannon Updated","base":"home","category":"buildings"}]}""",
             2
         )
+        assertEquals("Cannon", GameDataCatalog.nameFor(1000008L, "buildings", pack))
         assertEquals(null, GameDataCatalog.nameFor(1000008L, "traps", pack))
     }
 }
