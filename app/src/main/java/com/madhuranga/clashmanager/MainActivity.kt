@@ -140,9 +140,8 @@ fun ClashManagerApp() {
                     ?: error("Could not read the selected file")
                 require(raw.isNotBlank()) { "The selected file is empty" }
                 require(raw.toByteArray(Charsets.UTF_8).size <= 10 * 1024 * 1024) { "File is too large. Maximum supported size is 10 MB" }
-                val summary = if (raw.trimStart().startsWith("[")) {
-                    summarizeVillageExport(JSONArray(raw))
-                } else {
+                val parsedExport = VillageExportParser.parse(raw)
+                val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary() else {
                     summarizeVillageExport(JSONObject(raw))
                 }
                 val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
