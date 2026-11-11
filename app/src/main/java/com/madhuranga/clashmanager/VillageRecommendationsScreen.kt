@@ -3,7 +3,6 @@ package com.madhuranga.clashmanager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -115,6 +116,31 @@ fun VillageRecommendationsScreen(
     val profilePrefs = remember(context) { context.getSharedPreferences("clash_manager", 0) }
     var recoveryHistory by remember(playerTag) {
         mutableStateOf(RecoveryHistory.decode(profilePrefs.getString("recovery_history_$playerTag", "[]") ?: "[]"))
+    }
+    var exportMessage by remember(playerTag) { mutableStateOf("") }
+    val jsonExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            exportMessage = runCatching {
+                context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { writer ->
+                    writer.write(RecoveryExport.toJson(playerTag, recoveryHistory, System.currentTimeMillis()))
+                } ?: error("Unable to open the selected file.")
+                "JSON export saved."
+            }.getOrElse { "JSON export failed: ${it.localizedMessage ?: "unknown error"}" }
+        }
+    }
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) {
+            exportMessage = runCatching {
+                context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { writer ->
+                    writer.write(RecoveryExport.toCsv(recoveryHistory))
+                } ?: error("Unable to open the selected file.")
+                "CSV export saved."
+            }.getOrElse { "CSV export failed: ${it.localizedMessage ?: "unknown error"}" }
+        }
     }
     var recommendations by remember(playerTag) {
         mutableStateOf(emptyList<UpgradeRecommendation>())
@@ -336,6 +362,17 @@ fun VillageRecommendationsScreen(
             }
             if (recoveryHistory.isNotEmpty()) {
                 Text("RECOVERY HISTORY", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { jsonExportLauncher.launch("clash-recovery-history.json") }, modifier = Modifier.weight(1f)) {
+                        Text("EXPORT JSON")
+                    }
+                    Button(onClick = { csvExportLauncher.launch("clash-recovery-history.csv") }, modifier = Modifier.weight(1f)) {
+                        Text("EXPORT CSV")
+                    }
+                }
+                if (exportMessage.isNotBlank()) {
+                    Text(exportMessage, color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+                }
                 Text("Recorded when you generate priorities with a higher current level than the last saved level.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
                 recoveryHistory.asReversed().take(20).forEach { entry ->
                     Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
