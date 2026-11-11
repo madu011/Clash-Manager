@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: Clash Manager Attack Analysis API
+  version: 1.0.0
+  description: Contract only. A real authenticated backend and evaluated vision model must be deployed before the Android app can receive AI analysis.
+servers:
+  - url: https://api.example.invalid
+paths:
+  /v1/attack-analysis:
+    post:
+      operationId: analyzeAttack
+      summary: Analyze an enemy base screenshot against the player's supplied profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: X-Request-Id
+          required: true
+          schema:
+            type: string
+            maxLength: 80
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, scenario]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: User-selected enemy base screenshot. Maximum 10 MiB.
+                scenario:
+                  type: string
+                  description: JSON-encoded AttackScenario object.
+      responses:
+        '200':
+          description: Structured analysis. Estimates may be null when not supported.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '400':
+          description: Invalid image or scenario.
+        '401':
+          description: Missing or invalid app session.
+        '413':
+          description: Image exceeds size limit.
+        '422':
+          description: More information is required.
+        '429':
+          description: Rate limit exceeded.
+        '503':
+          description: Analysis service unavailable.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    AttackScenario:
+      type: object
+      required: [playerTag, mode, ownTownHallLevel, targetTownHallLevel, starGoal, profile]
+      properties:
+        playerTag:
+          type: string
+          pattern: '^#[A-Z0-9]{3,15}$'
+        mode:
+          type: string
+          enum: [CLAN_WAR, CLAN_WAR_LEAGUE, MULTIPLAYER, FRIENDLY]
+        ownTownHallLevel:
+          type: integer
+          minimum: 1
+          maximum: 18
+        targetTownHallLevel:
+          type: integer
+          minimum: 1
+          maximum: 18
+        starGoal:
+          type: integer
+          enum: [1, 2, 3]
+        notes:
+          type: string
+          maxLength: 1500
+        profile:
+          type: object
+          description: Only verified or user-entered data. Omit unknown levels.
+          properties:
+            troopLevels:
+              type: object
+              additionalProperties: { type: integer, minimum: 1 }
+            spellLevels:
+              type: object
+              additionalProperties: { type: integer, minimum: 1 }
+            heroLevels:
+              type: object
+              additionalProperties: { type: integer, minimum: 1 }
+            availableSiegeMachines:
+              type: array
+              items: { type: string }
+            sourceDescription:
+              type: string
+    AnalysisResponse:
+      type: object
+      required: [status, modelVersion, detectedFeatures, army, spells, heroes, attackSequence, starEstimates, limitations]
+      properties:
+        status:
+          type: string
+          enum: [complete, needs_confirmation]
+        modelVersion:
+          type: string
+        detectedFeatures:
+          type: array
+          items:
+            type: object
+            required: [feature, locationDescription]
+            properties:
+              feature: { type: string }
+              confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+              locationDescription: { type: string }
+              verifiedByUser: { type: boolean, default: false }
+        army:
+          type: array
+          items: { $ref: '#/components/schemas/RecommendedUnit' }
+        spells:
+          type: array
+          items: { $ref: '#/components/schemas/RecommendedUnit' }
+        heroes:
+          type: array
+          items: { $ref: '#/components/schemas/RecommendedUnit' }
+        siegeMachine:
+          type: [string, 'null']
+        attackSequence:
+          type: array
+          items: { type: string }
+        starEstimates:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            type: object
+            required: [stars, explanation]
+            properties:
+              stars: { type: integer, enum: [1, 2, 3] }
+              probability: { type: [number, 'null'], minimum: 0, maximum: 1 }
+              confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+              explanation: { type: string }
+        limitations:
+          type: array
+          items: { type: string }
+    RecommendedUnit:
+      type: object
+      required: [name, reason]
+      properties:
+        name: { type: string }
+        quantity: { type: [integer, 'null'], minimum: 0 }
+        level: { type: [integer, 'null'], minimum: 1 }
+        reason: { type: string }
