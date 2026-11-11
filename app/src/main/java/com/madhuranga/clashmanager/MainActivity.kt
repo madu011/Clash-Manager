@@ -81,9 +81,9 @@ fun ClashManagerApp() {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf("Dashboard") }
-    var thLevel by remember { mutableStateOf("10") }
-    var freeBuilders by remember { mutableStateOf("1") }
-    var rushedBuildings by remember { mutableStateOf("") }
+    var thLevel by remember { mutableStateOf(prefs.getString("town_hall_level", "10") ?: "10") }
+    var freeBuilders by remember { mutableStateOf(prefs.getString("available_builders", "1") ?: "1") }
+    var rushedBuildings by remember { mutableStateOf(prefs.getString("rushed_buildings", "") ?: "") }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -93,6 +93,13 @@ fun ClashManagerApp() {
     }
     LaunchedEffect(tasks) {
         prefs.edit().putString("tasks", saveTasks(tasks)).apply()
+    }
+    LaunchedEffect(thLevel, freeBuilders, rushedBuildings) {
+        prefs.edit()
+            .putString("town_hall_level", thLevel)
+            .putString("available_builders", freeBuilders)
+            .putString("rushed_buildings", rushedBuildings)
+            .apply()
     }
 
     MaterialTheme(
