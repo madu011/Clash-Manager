@@ -65,14 +65,27 @@ Menu labels and export availability can change between game versions and devices
 - A Player Tag must be saved before the import button becomes active.
 - The file must be non-empty and valid JSON.
 - The maximum accepted file size is 10 MB.
-- Both JSON objects and JSON arrays are accepted.
+- The current parser expects a JSON object at the top level with at least one recognised section; a top-level JSON array is rejected.
 - The app shows a structure preview, import date and approximate file size.
 - Imported raw JSON and its summary are stored locally under the selected Player Tag.
 - Selecting another Player Tag shows that profile's saved import summary.
 
-**Important:** In the current build, import validates and previews JSON structure. It does not yet parse building levels, walls, traps, resources, or active upgrades into the planner. An “imported” message confirms that the file was read and stored; it does not mean that all village data has been analysed.
+**Important:** The parser reads recognised collections and extracts IDs, levels and counts when those fields are present. It also previews other recognised top-level sections. Coverage depends on the exact export schema and the fields included in that file. It does not infer missing levels, positions, resources, or active upgrade timers, and the imported data is not yet a complete live village model. An “imported” message does not mean every village detail was available.
 
-## 5. Dashboard and Planner — add an upgrade
+## 5. Complete the Village setup checklist
+
+Open the **Village** tab and follow the **Complete Your Village Setup** checklist:
+
+1. Save your Player Tag in the Dashboard profile card.
+2. Import your own village JSON export if your game version offers one.
+3. Enter your current Town Hall level in the Village Planner.
+4. Enter the number of builders currently available.
+5. Add building names and target levels for upgrades you want to plan.
+6. Optionally, open the Attack tab and attach a clear base screenshot for your own attack-planning reference.
+
+The checklist tracks the five core setup items locally. The attack screenshot is optional. A completed checklist means the required inputs were supplied; it does not mean online sync or automated image analysis is active.
+
+## 6. Dashboard and Planner — add an upgrade
 
 The Dashboard and Planner currently display the manual upgrade tracker.
 
@@ -98,14 +111,14 @@ The timer starts when you tap Add task. Enter the remaining time, not the time t
 
 The app does not start or finish an upgrade inside Clash of Clans. It only tracks the timer you entered.
 
-## 6. Builder and Laboratory categories
+## 7. Builder and Laboratory categories
 
 - **Builder:** Use for buildings, walls, traps, and other construction tasks that use a builder.
 - **Laboratory:** Use for troop or spell research tasks.
 
 Choose the category that best represents the in-game task. The category controls which list the task appears in and the card's icon/accent.
 
-## 7. Reminders and Android permissions
+## 8. Reminders and Android permissions
 
 When a task is added, the app schedules a reminder for the duration entered.
 
@@ -115,7 +128,7 @@ When a task is added, the app schedules a reminder for the duration entered.
 - Battery saver, background restrictions, device restart behaviour, or manufacturer-specific power management can affect delivery.
 - A reminder is a local estimate based on the duration entered. It is not confirmed by the game server.
 
-## 8. Navigation and visible controls
+## 9. Navigation and visible controls
 
 | Screen/control | Purpose |
 |---|---|
@@ -129,7 +142,7 @@ When a task is added, the app schedules a reminder for the duration entered.
 | Mark done | Removes a task from the active list. |
 | Notifications icon | Visual notification entry point; it is not currently a full notification history screen. |
 
-## 9. Local data, backups, and changing phones
+## 10. Local data, backups, and changing phones
 
 The current version stores the Player Tag, upgrade tasks, and imported JSON locally in app-private preferences on the device. There is no account login or cloud sync yet.
 
@@ -138,7 +151,7 @@ The current version stores the Player Tag, upgrade tasks, and imported JSON loca
 - Moving to another phone does not automatically transfer these records.
 - Do not treat the current JSON import as a complete backup/restore feature.
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 | Problem | What to check |
 |---|---|
@@ -146,12 +159,12 @@ The current version stores the Player Tag, upgrade tasks, and imported JSON loca
 | Import button is disabled | Save a Player Tag first. |
 | File picker does not show the file | Check the folder and file extension; copy the export into Downloads if needed. |
 | Import failed | Check that the file is non-empty, valid JSON, and at most 10 MB. |
-| Import succeeds but no buildings appear | Automatic village parsing is not implemented yet; the current screen only previews JSON structure. |
+| Import succeeds but some buildings are missing | Only recognised collections and fields present in the export can be parsed. Unknown IDs and missing fields are not guessed. |
 | Countdown is incorrect | Remove the task and recreate it using the correct remaining hours. |
 | Reminder is missing | Check notification permission and Android battery/background restrictions. |
 | Online sync says not connected | Live API sync is planned and is not connected in this build. |
 
-## 11. Current feature status
+## 12. Current feature status
 
 ### Available in this build
 - Native Android interface built with Kotlin and Jetpack Compose.
@@ -160,7 +173,9 @@ The current version stores the Player Tag, upgrade tasks, and imported JSON loca
 - Countdown, progress display, and task completion removal.
 - Local persistence of tasks.
 - Reminder scheduling foundation.
-- JSON object/array import, validation, nested structure preview, and per-player local storage.
+- JSON object validation, recognised collection parsing, nested structure preview, and per-player local storage.
+- Village setup checklist for Player Tag, export, Town Hall, builders and upgrade targets.
+- Android home-screen village planner widget.
 
 ### Planned — not yet available
 - Secure backend connection to the official Clash of Clans API.
@@ -171,7 +186,7 @@ The current version stores the Player Tag, upgrade tasks, and imported JSON loca
 - Automated upgrade priority recommendations.
 - Base layout studio and visual base planning.
 
-## 12. Data accuracy and account safety
+## 13. Data accuracy and account safety
 
 The official Clash of Clans API is read-only and does not expose every live village detail or active countdown. The app must distinguish imported, API-sourced, and manually entered information. Missing values should be shown as unavailable rather than guessed.
 
