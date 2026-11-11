@@ -31,6 +31,26 @@ private val AnalyzerGold = Color(0xFFFFC857)
 private val AnalyzerMuted = Color(0xFF9AA8BA)
 private val AnalyzerPanel = Color(0xFF1A2230)
 
+private data class BuildingTargetInput(val name: String, val current: Int, val target: Int)
+
+private fun parseBuildingTargets(input: String): List<BuildingTargetInput>? {
+    if (input.isBlank()) return emptyList()
+    val entries = input.split(",")
+    if (entries.size > 12) return null
+    val parsed = mutableListOf<BuildingTargetInput>()
+    for (entry in entries) {
+        val fields = entry.trim().split(":")
+        if (fields.size != 3) return null
+        val name = fields[0].trim()
+        val current = fields[1].trim().toIntOrNull() ?: return null
+        val target = fields[2].trim().toIntOrNull() ?: return null
+        if (name.isBlank() || name.length > 40 || current !in 0..100 || target !in 1..100 || target <= current) return null
+        parsed += BuildingTargetInput(name, current, target)
+    }
+    if (parsed.map { it.name.lowercase() }.distinct().size != parsed.size) return null
+    return parsed
+}
+
 @Composable
 fun VillageRecommendationsScreen(
     playerTag: String,
@@ -45,6 +65,7 @@ fun VillageRecommendationsScreen(
         mutableStateOf(emptyList<UpgradeRecommendation>())
     }
     var validationMessage by remember(playerTag) { mutableStateOf("") }
+    var buildingTargets by remember(playerTag) { mutableStateOf("") }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -85,10 +106,18 @@ fun VillageRecommendationsScreen(
                 supportingText = { Text("Example: Archer Tower, Cannon — only enter buildings you have checked.") },
                 modifier = Modifier.fillMaxWidth()
             )
+            OutlinedTextField(
+                value = buildingTargets,
+                onValueChange = { buildingTargets = it.take(500) },
+                label = { Text("Building level targets") },
+                supportingText = { Text("Format: Archer Tower:10:15, Cannon:12:15 (name:current:target)") },
+                modifier = Modifier.fillMaxWidth()
+            )
             Button(
                 onClick = {
                     val th = townHallLevel.toIntOrNull()
                     val builders = availableBuilders.toIntOrNull()
+                    val parsedTargets = parseBuildingTargets(buildingTargets)
                     when {
                         playerTag.isBlank() -> {
                             validationMessage = "Save a Player Tag before creating profile recommendations."
@@ -102,12 +131,18 @@ fun VillageRecommendationsScreen(
                             validationMessage = "Enter available builders from 0 to 6."
                             recommendations = emptyList()
                         }
+                        parsedTargets == null -> {
+                            validationMessage = "Check building entries. Use name:current:target, with target above current."
+                            recommendations = emptyList()
+                        }
                         else -> {
                             recommendations = VillageAnalyzer.analyze(
                                 VillageSnapshot(
                                     playerTag = playerTag,
                                     townHallLevel = th,
                                     availableBuilders = builders,
+                                    buildingLevels = parsedTargets.associate { it.name to it.current },
+                                    buildingTargetLevels = parsedTargets.associate { it.name to it.target },
                                     rushedBuildings = rushedBuildings.split(",")
                                         .map(String::trim)
                                         .filter(String::isNotBlank)
