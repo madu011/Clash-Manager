@@ -587,14 +587,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                 if (exportSummary.isNotBlank()) {
                                     Text(exportSummary, color = Color.White, fontSize = 11.sp, maxLines = 3)
                                 }
-                                Button(
-                                    onClick = { /* Village profile editor is available below. */ },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD49A32), contentColor = Color(0xFF1B2029)),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("VILLAGE PROFILE & BUILDINGS", fontWeight = FontWeight.ExtraBold)
-                                }
+                                Text("Edit your Town Hall, builders and upgrade targets in the village tools below.", color = Color(0xFFCFD5DF), fontSize = 11.sp)
                             }
                         }
                     }
