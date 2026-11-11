@@ -136,6 +136,18 @@ fun VillageRecommendationsScreen(
                             validationMessage = "Check building entries. Use name:current:target, with target above current."
                             recommendations = emptyList()
                         }
+                        parsedTargets.any { target ->
+                            val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
+                            verifiedMaximum != null && target.target > verifiedMaximum
+                        } -> {
+                            val invalidTarget = parsedTargets.first { target ->
+                                val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
+                                verifiedMaximum != null && target.target > verifiedMaximum
+                            }
+                            val maximum = BuildingUpgradeCatalog.maximumLevelAt(invalidTarget.name, th)
+                            validationMessage = "${invalidTarget.name}: Town Hall $th currently allows up to level $maximum in the verified catalog."
+                            recommendations = emptyList()
+                        }
                         else -> {
                             recommendations = VillageAnalyzer.analyze(
                                 VillageSnapshot(
