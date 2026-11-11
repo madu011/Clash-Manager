@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="#1A2230">
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CLASH MANAGER"
+        android:textColor="#FFFFC857"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+    <TextView
+        android:id="@+id/widget_profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Village planner"
+        android:textColor="#FFFFFFFF"
+        android:textSize="13sp"
+        android:paddingTop="4dp" />
+    <TextView
+        android:id="@+id/widget_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open the app to view your upgrade plan."
+        android:textColor="#FF9AA8BA"
+        android:textSize="12sp"
+        android:paddingTop="8dp" />
+    <TextView
+        android:id="@+id/widget_schedule"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No schedule generated"
+        android:textColor="#FFFFFFFF"
+        android:textSize="12sp"
+        android:paddingTop="6dp" />
+</LinearLayout>
