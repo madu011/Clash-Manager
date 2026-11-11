@@ -74,12 +74,15 @@ data class UpgradeTask(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { ClashManagerApp() }
+        val openUpdates = intent?.getBooleanExtra(EXTRA_OPEN_UPDATES, false) == true
+        setContent { ClashManagerApp(openUpdatesOnStart = openUpdates) }
     }
 }
 
+private const val EXTRA_OPEN_UPDATES = "com.madhuranga.clashmanager.OPEN_UPDATES"
+
 @Composable
-fun ClashManagerApp() {
+fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
     var installedGameDataPack by remember { mutableStateOf(
@@ -191,7 +194,7 @@ fun ClashManagerApp() {
     var tagInput by remember { mutableStateOf(playerTag) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
-    var tab by remember { mutableStateOf("Dashboard") }
+    var tab by remember { mutableStateOf(if (openUpdatesOnStart) "Updates" else "Dashboard") }
     val profileKey = playerTag.ifBlank { "unselected" }
     var thLevel by remember(profileKey) {
         mutableStateOf(prefs.getString("town_hall_level_$profileKey", "") ?: "")
@@ -840,7 +843,8 @@ private fun showUpdateAvailableNotification(context: Context, versionName: Strin
         manager.createNotificationChannel(channel)
     }
     val launchIntent = Intent(context, MainActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        putExtra(EXTRA_OPEN_UPDATES, true)
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
     val pendingIntent = PendingIntent.getActivity(context, UPDATE_NOTIFICATION_ID, launchIntent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
