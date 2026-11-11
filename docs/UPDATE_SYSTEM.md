@@ -34,3 +34,14 @@ Users should be able to check, download, and install app updates from inside Cla
 3. Build and publish signed release APKs with monotonically increasing versionCode.
 4. Publish the manifest and checksums only after the APK/data pack is uploaded and verified.
 5. Test upgrades from an installed previous release on Android 8 through current Android versions.
+
+## Game data pack format (schema version 1)
+
+The downloader accepts a JSON object with:
+- `schemaVersion`: integer, currently `1`
+- `dataPackVersion`: non-negative integer matching the manifest
+- `generatedAt`: ISO-8601 timestamp string
+- `source`: source attribution and license metadata
+- `items`: array of game data entries
+
+Each item must be added only from a verified source. Unknown or missing levels and values must remain unknown; do not generate guessed values. The currently implemented installer verifies and stores the pack but does not yet connect its contents to the in-app catalog.
