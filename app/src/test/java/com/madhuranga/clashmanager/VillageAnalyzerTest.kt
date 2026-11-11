@@ -60,6 +60,7 @@ class VillageAnalyzerTest {
 
         assertTrue(result.any { it.title == "Balance resource spending" })
     }
+
     @Test
     fun recommendsBuildingsOnlyWhenBelowExplicitTarget() {
         val result = VillageAnalyzer.analyze(
@@ -75,4 +76,35 @@ class VillageAnalyzerTest {
         assertTrue(result.none { it.title == "Plan Cannon upgrade" })
     }
 
+    @Test
+    fun largerRemainingLevelGapGetsHigherPriorityWithinSameCategory() {
+        val result = VillageAnalyzer.analyze(
+            VillageSnapshot(
+                playerTag = "#ABC",
+                townHallLevel = 12,
+                buildingLevels = mapOf("Archer Tower" to 10, "Cannon" to 14),
+                buildingTargetLevels = mapOf("Archer Tower" to 18, "Cannon" to 15)
+            )
+        )
+        val archerTower = result.first { it.title == "Plan Archer Tower upgrade" }
+        val cannon = result.first { it.title == "Plan Cannon upgrade" }
+
+        assertTrue(archerTower.priority > cannon.priority)
+        assertTrue(archerTower.reason.contains("8 level(s) remaining"))
+        assertTrue(cannon.reason.contains("1 level(s) remaining"))
+    }
+
+    @Test
+    fun priorityBonusIsCappedForVeryLargeManualTargets() {
+        val result = VillageAnalyzer.analyze(
+            VillageSnapshot(
+                playerTag = "#ABC",
+                townHallLevel = 12,
+                buildingLevels = mapOf("Archer Tower" to 1),
+                buildingTargetLevels = mapOf("Archer Tower" to 100)
+            )
+        )
+
+        assertEquals(86, result.first { it.title == "Plan Archer Tower upgrade" }.priority)
+    }
 }
