@@ -127,11 +127,13 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     }
                 }
                 Text("FULL ANALYSIS ROADMAP", color = gold, fontWeight = FontWeight.Bold)
-                Text("• Recognise base layout, compartments and visible defences
-• Match available troops, spells, heroes and siege machines to their levels
-• Suggest attack entry, funnel and deployment order
-• Estimate 1-star, 2-star and 3-star outcomes separately with confidence
-• Save plans and results for Clan War, CWL, Multiplayer and Friendly attacks", color = Color.White, fontSize = 12.sp)
+                Text("""
+                    • Recognise base layout, compartments and visible defences
+                    • Match available troops, spells, heroes and siege machines to their levels
+                    • Suggest attack entry, funnel and deployment order
+                    • Estimate 1-star, 2-star and 3-star outcomes separately with confidence
+                    • Save plans and results for Clan War, CWL, Multiplayer and Friendly attacks
+                """.trimIndent(), color = Color.White, fontSize = 12.sp)
                 Text("The analyzer must show unknown information clearly instead of guessing.", color = muted, fontSize = 11.sp)
             }
         }
