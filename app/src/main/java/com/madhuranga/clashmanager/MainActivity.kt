@@ -151,7 +151,8 @@ fun ClashManagerApp() {
                     "This export belongs to ${parsedExport.playerTag}, not the selected profile $playerTag"
                 }
                 val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
-                val collectionLines = parsedExport.sections.joinToString("\n") { section ->
+                val coverage = VillageExportCoverageAnalyzer.analyze(parsedExport)
+                val collectionLines = "COVERAGE REPORT\n${coverage.asMessage()}\n\n" + parsedExport.sections.joinToString("\n") { section ->
                     "${section.key}: ${section.entryCount} ${section.shape}"
                 } + "\n" + parsedExport.categories.joinToString("\n") { category ->
                     val itemLabels = category.items.map { item ->
