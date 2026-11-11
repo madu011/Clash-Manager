@@ -34,7 +34,7 @@ private val AnalyzerPanel = Color(0xFF1A2230)
 
 private data class BuildingTargetInput(val name: String, val current: Int, val target: Int)
 
-private data class UpgradeEstimate(val name: String, val cost: Long?, val durationSeconds: Long?, val missingLevels: List<Int>)
+private data class UpgradeEstimate(val name: String, val costsByResource: Map<String, Long>?, val durationSeconds: Long?, val missingLevels: List<Int>)
 
 private fun estimateUpgrades(targets: List<BuildingTargetInput>): List<UpgradeEstimate> =
     targets.map { target ->
@@ -47,7 +47,7 @@ private fun estimateUpgrades(targets: List<BuildingTargetInput>): List<UpgradeEs
         val complete = missing.isEmpty()
         UpgradeEstimate(
             name = target.name,
-            cost = if (complete) steps.sumOf { it.cost } else null,
+            costsByResource = if (complete) steps.groupBy { it.resource }.mapValues { (_, resourceSteps) -> resourceSteps.sumOf { it.cost } } else null,
             durationSeconds = if (complete) steps.sumOf { it.durationSeconds } else null,
             missingLevels = missing
         )
@@ -295,8 +295,10 @@ fun VillageRecommendationsScreen(
             if (upgradeEstimates.isNotEmpty()) {
                 Text("VERIFIED UPGRADE ESTIMATES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
                 Text("Only complete, verified catalog ranges are totaled. Time is cumulative builder time.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
-                if (upgradeEstimates.all { it.cost != null && it.durationSeconds != null }) {
-                    val totalCost = upgradeEstimates.sumOf { it.cost ?: 0L }
+                if (upgradeEstimates.all { it.costsByResource != null && it.durationSeconds != null }) {
+                    val totalCosts = upgradeEstimates.flatMap { it.costsByResource!!.entries }
+                        .groupBy { it.key }
+                        .mapValues { (_, entries) -> entries.sumOf { it.value } }
                     val totalBuilderSeconds = upgradeEstimates.sumOf { it.durationSeconds ?: 0L }
                     Surface(
                         color = Color(0xFF303D50),
@@ -308,7 +310,9 @@ fun VillageRecommendationsScreen(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text("TOTAL VERIFIED PLAN", color = Color.White, fontWeight = FontWeight.ExtraBold)
-                            Text("Total Gold: ${String.format(Locale.US, "%,d", totalCost)}", color = AnalyzerGold)
+                            totalCosts.toSortedMap().forEach { (resource, amount) ->
+                                Text("Total $resource: ${String.format(Locale.US, "%,d", amount)}", color = AnalyzerGold)
+                            }
                             Text("Combined builder time: ${formatDuration(totalBuilderSeconds)}", color = AnalyzerMuted)
                             Text("Assumes one builder works continuously; this is not a calendar finish date.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
                         }
@@ -372,8 +376,10 @@ fun VillageRecommendationsScreen(
                     Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(estimate.name, color = Color.White, fontWeight = FontWeight.Bold)
-                            if (estimate.cost != null && estimate.durationSeconds != null) {
-                                Text("Cost: ${String.format(Locale.US, "%,d", estimate.cost)} Gold", color = AnalyzerGold)
+                            if (estimate.costsByResource != null && estimate.durationSeconds != null) {
+                                estimate.costsByResource.toSortedMap().forEach { (resource, amount) ->
+                                    Text("Cost: ${String.format(Locale.US, "%,d", amount)} $resource", color = AnalyzerGold)
+                                }
                                 Text("Builder time: ${formatDuration(estimate.durationSeconds)}", color = AnalyzerMuted)
                             } else {
                                 Text("Estimate unavailable for level(s): ${estimate.missingLevels.joinToString()}. Catalog data is incomplete.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
