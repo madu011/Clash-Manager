@@ -240,6 +240,17 @@ fun ClashManagerApp() {
                 }
                 if (tab == "Village") {
                     item {
+                        VillageRecommendationsScreen(
+                            playerTag = playerTag,
+                            townHallLevel = thLevel,
+                            onTownHallLevelChange = { thLevel = it },
+                            availableBuilders = freeBuilders,
+                            onAvailableBuildersChange = { freeBuilders = it },
+                            rushedBuildings = rushedBuildings,
+                            onRushedBuildingsChange = { rushedBuildings = it }
+                        )
+                    }
+                    item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
