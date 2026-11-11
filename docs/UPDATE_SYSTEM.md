@@ -19,6 +19,8 @@ Users should be able to check, download, and install app updates from inside Cla
 - Publish a separate versioned JSON data pack for buildings, troops, heroes, spells, pets, equipment, levels, Town Hall unlocks, upgrade costs and durations.
 - Include source/version metadata and SHA-256 checksum.
 - Download and validate data pack independently; keep the last known-good pack if a new pack fails validation.
+- An installed pack can only be replaced by a strictly higher `dataPackVersion`. Reinstalling the same version or downgrading is rejected.
+- Before making a rollback copy, validate the current active pack with the strict parser. A corrupt active file is never promoted to the known-good backup.
 - Merge/override catalog data only after schema and value validation. Unknown IDs remain unknown; never infer names or levels.
 - Show pack version, last checked time, and an in-app changelog.
 - A game content update must not require a new APK unless parser/schema or UI code itself changes.
@@ -26,7 +28,7 @@ Users should be able to check, download, and install app updates from inside Cla
 ## Current implementation status
 - `UpdateManifest` validates app/data versions, HTTPS URLs, approved repository hosts/paths, and SHA-256 values.
 - `UpdateManifestClient` fetches `updates/manifest.json` from the repository's `main` branch.
-- `GameDataPackParser` validates schema version 1, item IDs, names, bases, categories, duplicates and optional maximum levels. `GameDataPackInstaller` downloads a bounded file, verifies SHA-256, and keeps a previous known-good copy.
+- `GameDataPackParser` validates schema version 1, item IDs, names, bases, categories, duplicates and optional maximum levels. `GameDataPackInstaller` downloads a bounded file, verifies SHA-256, rejects same-version/downgrade installs, validates the current active pack before backup, and keeps a previous known-good copy.
 - The in-app catalog uses exact matching data-pack entries as overrides; unknown IDs remain unknown.
 - `ApkUpdateInstaller` downloads a bounded APK, follows only approved GitHub release-asset HTTPS redirects, verifies SHA-256, and hands the file to Android through FileProvider. Android's package installer handles signature/version checks and user confirmation.
 - Update Center supports manual manifest checks and data-pack/APK download actions. A newer app version triggers a once-per-version notification when notification permission is granted.
