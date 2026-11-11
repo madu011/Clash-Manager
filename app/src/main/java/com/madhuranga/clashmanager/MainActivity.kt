@@ -155,8 +155,10 @@ fun ClashManagerApp() {
                 }
             }
         }, floatingActionButton = {
-            FloatingActionButton(onClick = { showAdd = true }, containerColor = Gold, contentColor = Page) {
-                Icon(Icons.Default.Add, contentDescription = "Add upgrade")
+            if (tab == "Dashboard" || tab == "Planner") {
+                FloatingActionButton(onClick = { showAdd = true }, containerColor = Gold, contentColor = Page) {
+                    Icon(Icons.Default.Add, contentDescription = "Add upgrade")
+                }
             }
         }) { padding ->
             LazyColumn(
@@ -387,9 +389,10 @@ private fun AddUpgradeDialog(
         title = { Text("Add upgrade task") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Building / troop name") }, singleLine = true)
-                OutlinedTextField(level, { level = it.filter(Char::isDigit) }, label = { Text("Current level") }, singleLine = true)
-                OutlinedTextField(hours, { hours = it.filter(Char::isDigit) }, label = { Text("Duration in hours") }, singleLine = true)
+                Text("Enter the upgrade details exactly as shown in your game. The timer starts when you tap Add task.", color = Muted, fontSize = 12.sp)
+                OutlinedTextField(name, { name = it }, label = { Text("Building / troop / spell name") }, supportingText = { Text("Example: Archer Tower or Laboratory research") }, singleLine = true)
+                OutlinedTextField(level, { level = it.filter(Char::isDigit).take(3) }, label = { Text("Current level") }, supportingText = { Text("The task will be recorded as the next level") }, singleLine = true)
+                OutlinedTextField(hours, { hours = it.filter(Char::isDigit).take(5) }, label = { Text("Remaining duration (hours)") }, supportingText = { Text("Use the time remaining, not the original full duration") }, singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = category == "Builder", onClick = { category = "Builder" }, label = { Text("Builder") })
                     FilterChip(selected = category == "Laboratory", onClick = { category = "Laboratory" }, label = { Text("Laboratory") })
@@ -398,7 +401,7 @@ private fun AddUpgradeDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = name.isNotBlank() && (hours.toIntOrNull() ?: 0) > 0,
+                enabled = name.isNotBlank() && (level.toIntOrNull() ?: 0) > 0 && (hours.toIntOrNull() ?: 0) in 1..87600,
                 onClick = { onAdd(name.trim(), level.toIntOrNull() ?: 1, hours.toIntOrNull() ?: 24, category) }
             ) { Text("Add task") }
         },
