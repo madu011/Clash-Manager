@@ -103,6 +103,9 @@ fun ClashManagerApp() {
     var rushedBuildings by remember(profileKey) {
         mutableStateOf(prefs.getString("rushed_buildings_$profileKey", "") ?: "")
     }
+    var buildingTargets by remember(profileKey) {
+        mutableStateOf(prefs.getString("building_targets_$profileKey", "") ?: "")
+    }
     var exportSummary by remember { mutableStateOf(prefs.getString("village_export_summary_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportDetails by remember { mutableStateOf(prefs.getString("village_export_details_${playerTag.ifBlank { "unselected" }}", "") ?: "") }
     var exportError by remember { mutableStateOf("") }
@@ -164,11 +167,12 @@ fun ClashManagerApp() {
     LaunchedEffect(taskStorageKey, tasks) {
         prefs.edit().putString(taskStorageKey, saveTasks(tasks)).apply()
     }
-    LaunchedEffect(profileKey, thLevel, freeBuilders, rushedBuildings) {
+    LaunchedEffect(profileKey, thLevel, freeBuilders, rushedBuildings, buildingTargets) {
         prefs.edit()
             .putString("town_hall_level_$profileKey", thLevel)
             .putString("available_builders_$profileKey", freeBuilders)
             .putString("rushed_buildings_$profileKey", rushedBuildings)
+            .putString("building_targets_$profileKey", buildingTargets)
             .apply()
     }
 
@@ -247,7 +251,9 @@ fun ClashManagerApp() {
                             availableBuilders = freeBuilders,
                             onAvailableBuildersChange = { freeBuilders = it },
                             rushedBuildings = rushedBuildings,
-                            onRushedBuildingsChange = { rushedBuildings = it }
+                            onRushedBuildingsChange = { rushedBuildings = it },
+                            buildingTargets = buildingTargets,
+                            onBuildingTargetsChange = { buildingTargets = it }
                         )
                     }
                     item {
