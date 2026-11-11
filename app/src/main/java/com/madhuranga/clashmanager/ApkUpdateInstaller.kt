@@ -40,6 +40,48 @@ class ApkUpdateInstaller(
         }
     }
 
+    private fun openReleaseConnection(startUrl: String): HttpURLConnection {
+        var currentUrl = URL(startUrl)
+        repeat(4) { redirectCount ->
+            val uri = currentUrl.toURI()
+            if (redirectCount == 0) {
+                require(uri.scheme == "https" && uri.host == "github.com" &&
+                    uri.path.startsWith("/madu011/Clash-Manager/releases/download/") &&
+                    uri.userInfo == null && !uri.path.contains("..")) {
+                    "APK URL is not an approved GitHub release URL"
+                }
+            } else {
+                require(uri.scheme == "https" &&
+                    uri.host in setOf("objects.githubusercontent.com", "release-assets.githubusercontent.com") &&
+                    uri.userInfo == null) {
+                    "APK redirect host is not trusted"
+                }
+            }
+            val connection = connectionFactory(currentUrl)
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 30_000
+            connection.instanceFollowRedirects = false
+            connection.setRequestProperty("Accept", "application/octet-stream")
+            connection.connect()
+            val status = connection.responseCode
+            if (status == HttpURLConnection.HTTP_MOVED_PERM ||
+                status == HttpURLConnection.HTTP_MOVED_TEMP ||
+                status == HttpURLConnection.HTTP_SEE_OTHER ||
+                status == 307 || status == 308) {
+                val location = connection.getHeaderField("Location")
+                connection.disconnect()
+                require(!location.isNullOrBlank() && redirectCount < 3) {
+                    "APK download redirect is invalid"
+                }
+                currentUrl = URL(currentUrl, location)
+            } else {
+                return connection
+            }
+        }
+        error("Too many APK download redirects")
+    }
+
     fun downloadAndLaunch(manifest: UpdateManifest): Result<File> = runCatching {
         require(canRequestInstallPackages()) { "Allow Clash Manager to install app updates in Android settings first" }
         val uri = URI(manifest.apkUrl)
@@ -49,14 +91,8 @@ class ApkUpdateInstaller(
 
         apkFile.parentFile?.mkdirs()
         val tempFile = File(apkFile.parentFile, "clash-manager-update.tmp")
-        val connection = connectionFactory(URL(manifest.apkUrl))
+        val connection = openReleaseConnection(manifest.apkUrl)
         try {
-            connection.requestMethod = "GET"
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = false
-            connection.setRequestProperty("Accept", "application/octet-stream")
-            connection.connect()
             require(connection.responseCode == HttpURLConnection.HTTP_OK) {
                 "APK download failed (HTTP ${connection.responseCode})"
             }
