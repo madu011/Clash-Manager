@@ -646,13 +646,32 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                 }
                 if (tab != "Village" && tab != "Help" && tab != "Attack") {
 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("BUILDER LOG", color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+                        shape = RoundedCornerShape(20.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, StoneEdge),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF35465B), Color(0xFF1B2330))))
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(9.dp)
+                        ) {
                             val active = tasks.count { it.remaining(now) > 0 && it.category == "Builder" }
-                            Text("$active ACTIVE TASKS", color = Muted, fontSize = 12.sp)
-                            if (tasks.isEmpty()) {
-                                Text("No upgrades added yet. Tap + to add your first builder task.", color = Color.White)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("⚒️", fontSize = 22.sp)
+                                Spacer(Modifier.width(9.dp))
+                                Text("BUILDER LOG", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
+                                Surface(color = Color(0xFF171E2A), shape = RoundedCornerShape(8.dp)) {
+                                    Text("$active ACTIVE", color = Color(0xFF9BE7A8), fontWeight = FontWeight.Bold, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp))
+                                }
+                            }
+                            HorizontalDivider(color = Color(0x556D7788))
+                            if (tasks.none { it.category == "Builder" }) {
+                                Text("No builder upgrades yet. Tap + to add your first task.", color = Color.White, fontSize = 13.sp)
+                            } else {
+                                Text("Your active construction upgrades are listed below.", color = Color(0xFFD5DCE6), fontSize = 12.sp)
                             }
                         }
                     }
