@@ -149,8 +149,10 @@ fun ClashManagerApp() {
                     "This export belongs to ${parsedExport.playerTag}, not the selected profile $playerTag"
                 }
                 val summary = "Village export parsed • ${parsedExport.categories.size} collections • " + parsedExport.summary()
-                val collectionLines = parsedExport.categories.joinToString("\n") { category ->
-                    "${category.key}: ${category.items.size} unique entries • ${category.totalCount} total"
+                val collectionLines = parsedExport.sections.joinToString("\n") { section ->
+                    "${section.key}: ${section.entryCount} ${section.shape}"
+                } + "\n" + parsedExport.categories.joinToString("\n") { category ->
+                    "  ${category.key}: ${category.items.size} unique IDs • ${category.totalCount} total items"
                 }
                 val details = "Imported ${java.text.DateFormat.getDateTimeInstance().format(java.util.Date())} • ${(raw.toByteArray(Charsets.UTF_8).size / 1024).coerceAtLeast(1)} KB"
                 prefs.edit()
