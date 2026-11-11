@@ -64,6 +64,20 @@ private fun formatDuration(totalSeconds: Long): String {
     ).ifEmpty { listOf("<1m") }.joinToString(" ")
 }
 
+private fun parseRecoveryLevels(input: String): Map<String, Int>? {
+    if (input.isBlank()) return emptyMap()
+    val parsed = linkedMapOf<String, Int>()
+    for (entry in input.split(",")) {
+        val fields = entry.trim().split(":")
+        if (fields.size != 2) return null
+        val name = fields[0].trim()
+        val level = fields[1].trim().toIntOrNull() ?: return null
+        if (name.isBlank() || level !in 0..100 || parsed.keys.any { it.equals(name, true) }) return null
+        parsed[name] = level
+    }
+    return parsed
+}
+
 private fun parseBuildingTargets(input: String): List<BuildingTargetInput>? {
     if (input.isBlank()) return emptyList()
     val entries = input.split(",")
@@ -105,6 +119,8 @@ fun VillageRecommendationsScreen(
     var darkElixirBalance by remember(playerTag) { mutableStateOf("0") }
     var resourceBudget by remember(playerTag) { mutableStateOf<List<ResourceBudgetPlanner.ResourceStatus>?>(null) }
     var recoveryTasks by remember(playerTag) { mutableStateOf<List<RushRecoveryPlanner.Task>>(emptyList()) }
+    var recoveryCurrentLevels by remember(playerTag) { mutableStateOf("") }
+    var recoveryProgress by remember(playerTag) { mutableStateOf<RecoveryProgressPlanner.Summary?>(null) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AnalyzerPanel),
@@ -157,6 +173,13 @@ fun VillageRecommendationsScreen(
                 supportingText = { Text("Format: Archer Tower:10:15, Cannon:12:15 (name:current:target)") },
                 modifier = Modifier.fillMaxWidth()
             )
+            OutlinedTextField(
+                value = recoveryCurrentLevels,
+                onValueChange = { recoveryCurrentLevels = it.take(400) },
+                label = { Text("Recovery progress — current levels") },
+                supportingText = { Text("After upgrades, enter actual levels: Cannon:12, Archer Tower:10. Leave blank to use starting levels.") },
+                modifier = Modifier.fillMaxWidth()
+            )
             Text("CURRENT RESOURCE BALANCES", color = AnalyzerGold, fontWeight = FontWeight.Bold)
             Text("Enter your current in-game balances. The planner compares them with verified upgrade costs.", color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(
@@ -193,6 +216,7 @@ fun VillageRecommendationsScreen(
                             builderSchedule = null
                             resourceBudget = null
                             recoveryTasks = emptyList()
+                            recoveryProgress = null
                         }
                         th == null || th !in 1..18 -> {
                             validationMessage = "Enter a Town Hall level from 1 to 18."
@@ -201,6 +225,7 @@ fun VillageRecommendationsScreen(
                             builderSchedule = null
                             resourceBudget = null
                             recoveryTasks = emptyList()
+                            recoveryProgress = null
                         }
                         builders == null || builders !in 0..6 -> {
                             validationMessage = "Enter available builders from 0 to 6."
@@ -209,6 +234,7 @@ fun VillageRecommendationsScreen(
                             builderSchedule = null
                             resourceBudget = null
                             recoveryTasks = emptyList()
+                            recoveryProgress = null
                         }
                         parsedTargets == null -> {
                             validationMessage = "Check building entries. Use name:current:target, with target above current."
@@ -217,6 +243,7 @@ fun VillageRecommendationsScreen(
                             builderSchedule = null
                             resourceBudget = null
                             recoveryTasks = emptyList()
+                            recoveryProgress = null
                         }
                         parsedTargets.any { target ->
                             val verifiedMaximum = BuildingUpgradeCatalog.maximumLevelAt(target.name, th)
@@ -233,6 +260,16 @@ fun VillageRecommendationsScreen(
                             builderSchedule = null
                             resourceBudget = null
                             recoveryTasks = emptyList()
+                            recoveryProgress = null
+                        }
+                        parseRecoveryLevels(recoveryCurrentLevels) == null -> {
+                            validationMessage = "Check recovery progress. Use name:currentLevel, for example Cannon:12."
+                            recommendations = emptyList()
+                            upgradeEstimates = emptyList()
+                            builderSchedule = null
+                            resourceBudget = null
+                            recoveryTasks = emptyList()
+                            recoveryProgress = null
                         }
                         else -> {
                             upgradeEstimates = estimateUpgrades(parsedTargets)
@@ -264,6 +301,10 @@ fun VillageRecommendationsScreen(
                                 )
                             recommendations = VillageAnalyzer.analyze(snapshot)
                             recoveryTasks = RushRecoveryPlanner.create(snapshot)
+                            recoveryProgress = RecoveryProgressPlanner.calculate(
+                                parsedTargets.map { BuilderSchedulePlanner.Target(it.name, it.current, it.target) },
+                                parseRecoveryLevels(recoveryCurrentLevels) ?: emptyMap()
+                            )
                             validationMessage = "Based on the profile details you entered. Verify each suggestion in-game."
                         }
                     }
@@ -274,6 +315,32 @@ fun VillageRecommendationsScreen(
             }
             if (validationMessage.isNotBlank()) {
                 Text(validationMessage, color = AnalyzerMuted, style = MaterialTheme.typography.bodySmall)
+            }
+            if (recoveryProgress != null) {
+                val progress = recoveryProgress!!
+                Text("RECOVERY PROGRESS", color = AnalyzerGold, fontWeight = FontWeight.Bold)
+                Text("${progress.percentComplete}% complete • ${progress.completedLevels}/${progress.totalLevels} levels finished", color = Color.White, fontWeight = FontWeight.SemiBold)
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { progress.percentComplete / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = AnalyzerGold,
+                    trackColor = Color(0xFF39485B)
+                )
+                progress.buildings.forEach { item ->
+                    Surface(color = Color(0xFF253244), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(item.buildingName, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Lv ${item.currentLevel} / ${item.targetLevel} • ${item.completedLevels} completed • ${item.remainingLevels} remaining", color = AnalyzerMuted)
+                            androidx.compose.material3.LinearProgressIndicator(
+                                progress = { item.percentComplete / 100f },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = AnalyzerGold,
+                                trackColor = Color(0xFF39485B)
+                            )
+                            Text("${item.percentComplete}% complete", color = AnalyzerGold, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
             }
             if (recoveryTasks.isNotEmpty()) {
                 Text("RUSH RECOVERY CHECKLIST", color = AnalyzerGold, fontWeight = FontWeight.Bold)
