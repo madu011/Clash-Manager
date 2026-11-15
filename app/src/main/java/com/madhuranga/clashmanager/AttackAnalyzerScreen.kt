@@ -57,6 +57,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var prepared by remember { mutableStateOf(false) }
     var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
+    var editingPlanIndex by remember(historyKey) { mutableStateOf(-1) }
     var savedPlans by remember(historyKey) {
         mutableStateOf(runCatching {
             val array = JSONArray(prefs.getString(historyKey, "[]") ?: "[]")
@@ -257,14 +258,19 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
                         }
-                        val updated = (listOf(item.toString()) + savedPlans).take(30)
+                        val updated = if (editingPlanIndex in savedPlans.indices) {
+                            savedPlans.toMutableList().apply { set(editingPlanIndex, item.toString()) }
+                        } else {
+                            (listOf(item.toString()) + savedPlans).take(30)
+                        }
                         val array = JSONArray()
                         updated.forEach { array.put(JSONObject(it)) }
                         prefs.edit().putString(historyKey, array.toString()).apply()
                         savedPlans = updated
+                        editingPlanIndex = -1
                     }, modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))
-                    ) { Text("SAVE ATTACK PLAN") }
+                    ) { Text(if (editingPlanIndex in savedPlans.indices) "UPDATE ATTACK PLAN" else "SAVE ATTACK PLAN") }
                 }
             }
         }
@@ -280,13 +286,36 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                 Text("${plan.optString("mode")} • ${plan.optString("goal")}", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                                 Text("TH${plan.optString("ownTownHall")} vs TH${plan.optString("targetTownHall")}", color = muted, fontSize = 11.sp)
                             }
-                            TextButton(onClick = {
+                            Column {
+                                TextButton(onClick = {
+                                    mode = plan.optString("mode", "Clan War")
+                                    ownTownHall = plan.optString("ownTownHall")
+                                    targetTownHall = plan.optString("targetTownHall")
+                                    goal = plan.optString("goal", "3-star")
+                                    notes = plan.optString("notes")
+                                    troopSetup = plan.optString("troops")
+                                    troopLevels = plan.optString("troopLevels")
+                                    spellSetup = plan.optString("spells")
+                                    heroSetup = plan.optString("heroes")
+                                    heroEquipment = plan.optString("heroEquipment")
+                                    siegeSetup = plan.optString("siegeMachine")
+                                    troopCapacity = plan.optString("troopCapacity")
+                                    spellCapacity = plan.optString("spellCapacity")
+                                    siegeCapacity = plan.optString("siegeCapacity", "1")
+                                    armySection = "TROOPS"
+                                    editingPlanIndex = index
+                                    prepared = false
+                                    validationErrors = emptyList()
+                                }) { Text("Load / Edit") }
+                                TextButton(onClick = {
                                 val updated = savedPlans.filterIndexed { i, _ -> i != index }
                                 val array = JSONArray()
                                 updated.forEach { array.put(JSONObject(it)) }
                                 prefs.edit().putString(historyKey, array.toString()).apply()
                                 savedPlans = updated
+                                if (editingPlanIndex == index) editingPlanIndex = -1
                             }) { Text("Delete") }
+                            }
                         }
                     }
                 }
