@@ -248,8 +248,8 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text("🏰 SIEGE MACHINE", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text(siegeSetup.ifBlank { "Not selected" }, color = Color.White, fontSize = 11.sp)
                             Divider(color = Color(0xFF465365))
-                            CapacityStatusRow("TROOP CAPACITY", if (troopCapacity.isBlank()) "Not entered" else "$troopCapacity available • $usedTroops listed", false, gold, muted)
-                            CapacityStatusRow("SPELL CAPACITY", if (spellCapacity.isBlank()) "Not entered" else "$spellCapacity available • $usedSpells listed", false, gold, muted)
+                            CapacityStatusRow("TROOP CAPACITY", if (troopCapacity.isBlank()) "Not entered" else "$troopCapacity available • ${countConfiguredUnits(troopSetup)} listed", false, gold, muted)
+                            CapacityStatusRow("SPELL CAPACITY", if (spellCapacity.isBlank()) "Not entered" else "$spellCapacity available • ${countConfiguredUnits(spellSetup)} listed", false, gold, muted)
                             CapacityStatusRow("SIEGE SLOTS", if (siegeCapacity.isBlank()) "Not entered" else "$siegeCapacity available", false, gold, muted)
                             CapacityStatusRow("BASE SCREENSHOT", if (screenshotUri == null) "Not attached" else "Attached", false, gold, muted)
                             if (notes.isNotBlank()) {
