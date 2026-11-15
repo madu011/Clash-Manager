@@ -11,7 +11,7 @@ class RecoveryExportTest {
             listOf(RecoveryHistoryEntry("Archer, \"Tower\"", 4, 6, 123L))
         )
         assertTrue(csv.startsWith("building,from_level,to_level,levels_gained,recorded_at_millis"))
-        assertTrue(csv.contains("\"Archer, \"\"Tower\"\"",4,6,2,123"))
+        assertTrue(csv.contains("\"Archer, \"\"Tower\"\",4,6,2,123"))
     }
 
     @Test fun exportsJsonWithPlayerAndHistory() {
