@@ -565,6 +565,9 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                         }
                                     }
                                 }
+                                FantasyVillageScene(
+                                    modifier = Modifier.fillMaxWidth().height(128.dp)
+                                )
                                 Text(
                                     if (exportSummary.isNotBlank()) "VILLAGE EXPORT CONNECTED" else "BUILD YOUR VILLAGE PROFILE",
                                     color = if (exportSummary.isNotBlank()) Color(0xFF9BE7A8) else Gold,
@@ -629,14 +632,34 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         )
                     }
                     item {
-                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
+                            shape = RoundedCornerShape(20.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF8B7047)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        ) {
+                            Column(
+                                Modifier.fillMaxWidth()
+                                    .background(
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                                            listOf(Color(0xFF394B61), Color(0xFF202A3B), Color(0xFF171E29))
+                                        )
+                                    )
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Construction, contentDescription = null, tint = Gold, modifier = Modifier.size(28.dp))
-                                    Spacer(Modifier.width(9.dp))
+                                    Surface(
+                                        color = Color(0xFF8B642A),
+                                        shape = RoundedCornerShape(12.dp),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5BD66))
+                                    ) {
+                                        Icon(Icons.Default.Construction, contentDescription = null, tint = Color.White, modifier = Modifier.padding(9.dp).size(24.dp))
+                                    }
+                                    Spacer(Modifier.width(10.dp))
                                     Column {
                                         Text("VILLAGE DATA IMPORT", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-                                        Text("Import your own in-game village export", color = Muted, fontSize = 12.sp)
+                                        Text("Import your own in-game village export", color = Color(0xFFD5DCE6), fontSize = 12.sp)
                                     }
                                 }
                                 Text("In Clash of Clans, open Settings → More Settings → Export village data. Then select the exported JSON file below.", color = Color.White, fontSize = 13.sp)
