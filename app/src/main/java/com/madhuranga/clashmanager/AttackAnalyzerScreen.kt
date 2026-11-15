@@ -64,6 +64,17 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
             (0 until array.length()).map { array.getJSONObject(it).toString() }
         }.getOrDefault(emptyList()))
     }
+    val resultsKey = "attack_results_${playerTag.ifBlank { "unselected" }}"
+    var attackResults by remember(resultsKey) {
+        mutableStateOf(runCatching {
+            val array = JSONArray(prefs.getString(resultsKey, "[]") ?: "[]")
+            (0 until array.length()).map { array.getJSONObject(it).toString() }
+        }.getOrDefault(emptyList()))
+    }
+    var resultPlanIndex by remember(resultsKey) { mutableStateOf(-1) }
+    var resultStars by remember(resultsKey) { mutableStateOf(0) }
+    var resultDestruction by remember(resultsKey) { mutableStateOf("") }
+    var resultNotes by remember(resultsKey) { mutableStateOf("") }
     val panel = Color(0xFF1A2230)
     val gold = Color(0xFFFFC857)
     val muted = Color(0xFF9AA8BA)
@@ -315,6 +326,98 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                 savedPlans = updated
                                 if (editingPlanIndex == index) editingPlanIndex = -1
                             }) { Text("Delete") }
+                            }
+                        }
+                    }
+                }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF80643B))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("ATTACK RESULTS HISTORY", color = gold, fontWeight = FontWeight.ExtraBold)
+                        Text("Record the actual result after your attack. Results are entered by you, not estimated by the app.", color = muted, fontSize = 10.sp)
+                        if (savedPlans.isEmpty()) {
+                            Text("Save an attack plan first to record its result.", color = muted, fontSize = 11.sp)
+                        } else {
+                            var resultMenuExpanded by remember { mutableStateOf(false) }
+                            OutlinedButton(onClick = { resultMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                                Text(if (resultPlanIndex in savedPlans.indices) {
+                                    val selected = JSONObject(savedPlans[resultPlanIndex])
+                                    "${selected.optString("mode")} • TH${selected.optString("targetTownHall")}"
+                                } else "Choose saved attack plan")
+                            }
+                            DropdownMenu(expanded = resultMenuExpanded, onDismissRequest = { resultMenuExpanded = false }) {
+                                savedPlans.forEachIndexed { index, raw ->
+                                    val plan = runCatching { JSONObject(raw) }.getOrNull()
+                                    if (plan != null) DropdownMenuItem(
+                                        text = { Text("${plan.optString("mode")} • TH${plan.optString("targetTownHall")} • ${plan.optString("goal")}") },
+                                        onClick = { resultPlanIndex = index; resultMenuExpanded = false }
+                                    )
+                                }
+                            }
+                            Text("ACTUAL STARS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                (0..3).forEach { stars ->
+                                    FilterChip(selected = resultStars == stars, onClick = { resultStars = stars }, label = { Text("$stars ★") })
+                                }
+                            }
+                            OutlinedTextField(resultDestruction, { resultDestruction = it.filter(Char::isDigit).take(3) }, label = { Text("Destruction percentage (0–100)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(resultNotes, { resultNotes = it.take(1000) }, label = { Text("Battle result notes (optional)") }, minLines = 2, modifier = Modifier.fillMaxWidth())
+                            Button(
+                                onClick = {
+                                    val percent = resultDestruction.toIntOrNull()
+                                    if (resultPlanIndex in savedPlans.indices && percent != null && percent in 0..100) {
+                                        val plan = JSONObject(savedPlans[resultPlanIndex])
+                                        val result = JSONObject().apply {
+                                            put("planCreatedAt", plan.optLong("createdAt"))
+                                            put("mode", plan.optString("mode"))
+                                            put("targetTownHall", plan.optString("targetTownHall"))
+                                            put("goal", plan.optString("goal"))
+                                            put("stars", resultStars)
+                                            put("destructionPercent", percent)
+                                            put("notes", resultNotes)
+                                            put("recordedAt", System.currentTimeMillis())
+                                        }
+                                        val updated = (listOf(result.toString()) + attackResults).take(100)
+                                        val array = JSONArray()
+                                        updated.forEach { array.put(JSONObject(it)) }
+                                        prefs.edit().putString(resultsKey, array.toString()).apply()
+                                        attackResults = updated
+                                        resultPlanIndex = -1
+                                        resultStars = 0
+                                        resultDestruction = ""
+                                        resultNotes = ""
+                                    }
+                                },
+                                enabled = resultPlanIndex in savedPlans.indices && (resultDestruction.toIntOrNull() in 0..100),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))
+                            ) { Text("SAVE ATTACK RESULT") }
+                        }
+                        Divider(color = Color(0xFF465365))
+                        if (attackResults.isEmpty()) {
+                            Text("No attack results recorded yet.", color = muted, fontSize = 11.sp)
+                        } else {
+                            attackResults.forEachIndexed { index, raw ->
+                                val result = runCatching { JSONObject(raw) }.getOrNull()
+                                if (result != null) {
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text("${result.optString("mode")} • ${result.optInt("stars")} ★ • ${result.optInt("destructionPercent")}% ", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
+                                            Text("Target TH${result.optString("targetTownHall")} • Goal ${result.optString("goal")}", color = muted, fontSize = 10.sp)
+                                            if (result.optString("notes").isNotBlank()) Text(result.optString("notes"), color = muted, fontSize = 10.sp)
+                                        }
+                                        TextButton(onClick = {
+                                            val updated = attackResults.filterIndexed { i, _ -> i != index }
+                                            val array = JSONArray()
+                                            updated.forEach { array.put(JSONObject(it)) }
+                                            prefs.edit().putString(resultsKey, array.toString()).apply()
+                                            attackResults = updated
+                                        }) { Text("Delete") }
+                                    }
+                                }
                             }
                         }
                     }
