@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -554,7 +555,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         AttackAnalyzerScreen(playerTag, attackScreenshot) { pickAttackScreenshot.launch(arrayOf("image/*")) }
                     }
                 }
-                if (tab == "Village") {
+                if (tab == "Village" && villageSection == "OVERVIEW") {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
@@ -654,6 +655,8 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             onBuildingTargetsChange = { buildingTargets = it }
                         )
                     }
+                }
+                if (tab == "Village" && villageSection == "IMPORT") {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
@@ -746,7 +749,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         }
                     }
                 }
-                if (villageSection == "IMPORT") {
+                if (tab == "Village" && villageSection == "IMPORT") {
                     item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
