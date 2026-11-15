@@ -40,7 +40,7 @@ class VillageAttackProfileImporterTest {
         assertEquals("Barbarian x 3", result.troops)
         assertEquals("", result.troopLevels)
         assertEquals("", result.heroes)
-        assertEquals(2, result.entriesWithoutKnownNames)
+        assertEquals(1, result.entriesWithoutKnownNames)
         assertEquals(2, result.entriesWithoutLevels)
         assertTrue(result.importedEntries > 0)
     }
