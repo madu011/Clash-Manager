@@ -477,6 +477,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             }
                         }
                     }
+                }
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
                     shape = RoundedCornerShape(16.dp),
