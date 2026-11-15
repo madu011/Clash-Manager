@@ -32,7 +32,7 @@ class BuilderSchedulePlannerTest {
 
         assertEquals(150L, result.elapsedSeconds)
         assertEquals(150L, result.totalBuilderSeconds)
-        assertEquals(listOf(0L, 30L), result.upgrades.map { it.startAfterSeconds })
+        assertEquals(listOf(0L, 120L), result.upgrades.map { it.startAfterSeconds })
     }
 
     @Test fun sameBuildingLevelsRemainSequential() {
