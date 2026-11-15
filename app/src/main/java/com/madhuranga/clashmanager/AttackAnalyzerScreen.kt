@@ -31,6 +31,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var troopLevels by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_levels_$profileKey", "") ?: "") }
     var spellSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_spells_$profileKey", "") ?: "") }
     var heroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_heroes_$profileKey", "") ?: "") }
+    var heroEquipment by remember(profileKey) { mutableStateOf(prefs.getString("attack_hero_equipment_$profileKey", "") ?: "") }
     var siegeSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_$profileKey", "") ?: "") }
     var prepared by remember { mutableStateOf(false) }
     var validationErrors by remember { mutableStateOf(emptyList<String>()) }
@@ -76,7 +77,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text("MANUAL", color = Color(0xFF9BE7A8), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            listOf("TROOPS", "SPELLS", "HEROES").forEach { section ->
+                            listOf("TROOPS", "SPELLS", "HEROES", "EQUIPMENT").forEach { section ->
                                 val selected = armySection == section
                                 Surface(
                                     modifier = Modifier.weight(1f),
@@ -85,7 +86,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                     shape = RoundedCornerShape(9.dp),
                                     border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) gold else Color(0xFF465365))
                                 ) {
-                                    Text(section, modifier = Modifier.padding(vertical = 10.dp, horizontal = 3.dp), color = if (selected) Color.White else muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                    Text(section, modifier = Modifier.padding(vertical = 10.dp, horizontal = 3.dp), color = if (selected) Color.White else muted, fontSize = 8.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                                 }
                             }
                         }
@@ -95,10 +96,14 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                 OutlinedTextField(troopLevels, { value -> troopLevels = value.take(1200); prepared = false; prefs.edit().putString("attack_troop_levels_$profileKey", value.take(1200)).apply() }, label = { Text("Troop levels") }, placeholder = { Text("Example: Root Rider:3, Valkyrie:12") }, supportingText = { Text("Format: Unit name:level, separated by commas. Enter only levels you have checked.") }, minLines = 2, modifier = Modifier.fillMaxWidth())
                                 OutlinedTextField(siegeSetup, { siegeSetup = it.take(200); prepared = false; prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply() }, label = { Text("Siege machine (optional)") }, placeholder = { Text("Example: Log Launcher") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             }
-                            "SPELLS" -> OutlinedTextField(spellSetup, { spellSetup = it.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
-                            else -> OutlinedTextField(heroSetup, { heroSetup = it.take(500); prepared = false; prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply() }, label = { Text("Hero levels and equipment notes") }, placeholder = { Text("Example: Barbarian King Lv 90, Archer Queen Lv 95") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                            "SPELLS" -> OutlinedTextField(spellSetup, { value -> spellSetup = value.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", value.take(800)).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                            "HEROES" -> OutlinedTextField(heroSetup, { value -> heroSetup = value.take(500); prepared = false; prefs.edit().putString("attack_heroes_$profileKey", value.take(500)).apply() }, label = { Text("Hero levels") }, placeholder = { Text("Example: Barbarian King Lv 90, Archer Queen Lv 95") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                            else -> {
+                                Text("Record equipment selected for each hero. Use the names shown in your current game version.", color = muted, fontSize = 11.sp)
+                                OutlinedTextField(heroEquipment, { value -> heroEquipment = value.take(1000); prepared = false; prefs.edit().putString("attack_hero_equipment_$profileKey", value.take(1000)).apply() }, label = { Text("Hero equipment selection") }, placeholder = { Text("Example: Barbarian King: Giant Gauntlet, Rage Vial\nArcher Queen: Frozen Arrow, Invisibility Vial") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                            }
                         }
-                        Text("These are saved as your manual profile. The app does not detect troop levels automatically yet.", color = muted, fontSize = 10.sp)
+                        Text("Your troop levels and hero equipment are saved to this player profile. Automatic detection is not active yet.", color = muted, fontSize = 10.sp)
                     }
                 }
                 Text("ATTACK GOAL", color = gold, fontWeight = FontWeight.Bold)
@@ -150,7 +155,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("targetTownHall", targetTownHall); put("goal", goal)
                             put("notes", notes)
                             put("troops", troopSetup); put("troopLevels", troopLevels); put("spells", spellSetup)
-                            put("heroes", heroSetup); put("siegeMachine", siegeSetup)
+                            put("heroes", heroSetup); put("heroEquipment", heroEquipment); put("siegeMachine", siegeSetup)
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
                         }
