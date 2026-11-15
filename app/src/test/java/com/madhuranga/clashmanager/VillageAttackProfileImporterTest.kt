@@ -14,7 +14,7 @@ class VillageAttackProfileImporterTest {
             "siege_machines":[]
         }"""
 
-        val result = VillageAttackProfileImporter.import(json)
+        val result = VillageAttackProfileImporter.fromVillageExport(json)
 
         assertEquals("Barbarian x 5", result.troops)
         assertEquals("Barbarian:10", result.troopLevels)
@@ -35,7 +35,7 @@ class VillageAttackProfileImporterTest {
             "heroes":[{"data":28000000,"cnt":1}]
         }"""
 
-        val result = VillageAttackProfileImporter.import(json)
+        val result = VillageAttackProfileImporter.fromVillageExport(json)
 
         assertEquals("Barbarian x 3", result.troops)
         assertEquals("", result.troopLevels)
@@ -48,7 +48,7 @@ class VillageAttackProfileImporterTest {
     @Test
     fun rejectsExportWithoutRecognisedCollections() {
         try {
-            VillageAttackProfileImporter.import("""{"unrelated":[]}""")
+            VillageAttackProfileImporter.fromVillageExport("""{"unrelated":[]}""")
             throw AssertionError("Expected an invalid export to be rejected")
         } catch (_: IllegalArgumentException) {
             // Expected: parser does not accept an unrecognised document.
