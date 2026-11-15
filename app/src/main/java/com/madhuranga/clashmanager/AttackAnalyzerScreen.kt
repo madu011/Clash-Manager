@@ -17,6 +17,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private fun loadVillageAttackProfile(
+    context: android.content.Context,
+    prefs: android.content.SharedPreferences,
+    profileKey: String
+): ImportedAttackProfile {
+    val rawExport = requireNotNull(prefs.getString("village_export_json_$profileKey", null)) {
+        "Import your village JSON on the Village screen first."
+    }
+    val activePack = runCatching {
+        val packFile = java.io.File(context.filesDir, "game-data/active-pack.json")
+        val packJson = packFile.readText(Charsets.UTF_8)
+        GameDataPackParser.parse(packJson, JSONObject(packJson).getInt("dataPackVersion"))
+    }.getOrNull()
+    return VillageAttackProfileImporter.fromVillageExport(rawExport, activePack)
+}
+
 private fun countConfiguredUnits(input: String): Int {
     val patterns = listOf(
         Regex("(?i)\\bx\\s*(\\d+)\\b"),
@@ -119,63 +135,51 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         }
                         OutlinedButton(
                             onClick = {
-                                val rawExport = prefs.getString("village_export_json_$profileKey", null)
-                                if (rawExport.isNullOrBlank()) {
-                                    villageImportStatus = "Import your village JSON on the Village screen first."
-                                } else {
-                                    val activePack = runCatching {
-                                        val packFile = java.io.File(context.filesDir, "game-data/active-pack.json")
-                                        val packJson = packFile.readText(Charsets.UTF_8)
-                                        GameDataPackParser.parse(packJson, JSONObject(packJson).getInt("dataPackVersion"))
-                                    }.getOrNull()
-                                    runCatching {
-                                        VillageAttackProfileImporter.fromVillageExport(rawExport, activePack)
-                                    }.onSuccess { imported ->
-                                        if (imported.troops.isNotBlank()) {
-                                            troopSetup = imported.troops
-                                            prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply()
-                                        }
-                                        if (imported.troopLevels.isNotBlank()) {
-                                            troopLevels = imported.troopLevels
-                                            prefs.edit().putString("attack_troop_levels_$profileKey", troopLevels).apply()
-                                        }
-                                        if (imported.spells.isNotBlank()) {
-                                            spellSetup = imported.spells
-                                            prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply()
-                                        }
-                                        if (imported.heroes.isNotBlank()) {
-                                            heroSetup = imported.heroes
-                                            prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply()
-                                        }
-                                        if (imported.pets.isNotBlank()) {
-                                            petSetup = imported.pets
-                                            prefs.edit().putString("attack_pets_$profileKey", petSetup).apply()
-                                        }
-                                        if (imported.heroEquipment.isNotBlank()) {
-                                            heroEquipment = imported.heroEquipment
-                                            prefs.edit().putString("attack_hero_equipment_$profileKey", heroEquipment).apply()
-                                        }
-                                        if (imported.builderTroops.isNotBlank()) {
-                                            builderTroopSetup = imported.builderTroops
-                                            prefs.edit().putString("attack_builder_troops_$profileKey", builderTroopSetup).apply()
-                                        }
-                                        if (imported.builderHeroes.isNotBlank()) {
-                                            builderHeroSetup = imported.builderHeroes
-                                            prefs.edit().putString("attack_builder_heroes_$profileKey", builderHeroSetup).apply()
-                                        }
-                                        if (imported.siegeMachine.isNotBlank()) {
-                                            siegeSetup = imported.siegeMachine
-                                            prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply()
-                                        }
-                                        prepared = false
-                                        villageImportStatus = if (imported.importedEntries == 0) {
-                                            "No recognised army entries were found in this export. Check that its game-data pack is current."
-                                        } else {
-                                            "Imported ${imported.importedEntries} known entries. Unknown IDs: ${imported.entriesWithoutKnownNames}; missing levels: ${imported.entriesWithoutLevels}."
-                                        }
-                                    }.onFailure { error ->
-                                        villageImportStatus = error.message ?: "Village army data could not be imported."
+                                val importedResult = runCatching {
+                                    loadVillageAttackProfile(context, prefs, profileKey)
+                                }
+                                if (importedResult.isSuccess) {
+                                    val imported = importedResult.getOrThrow()
+                                    if (imported.troops.isNotBlank()) {
+                                        troopSetup = imported.troops
+                                        prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply()
                                     }
+                                    if (imported.troopLevels.isNotBlank()) {
+                                        troopLevels = imported.troopLevels
+                                        prefs.edit().putString("attack_troop_levels_$profileKey", troopLevels).apply()
+                                    }
+                                    if (imported.spells.isNotBlank()) {
+                                        spellSetup = imported.spells
+                                        prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply()
+                                    }
+                                    if (imported.heroes.isNotBlank()) {
+                                        heroSetup = imported.heroes
+                                        prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply()
+                                    }
+                                    if (imported.pets.isNotBlank()) {
+                                        petSetup = imported.pets
+                                        prefs.edit().putString("attack_pets_$profileKey", petSetup).apply()
+                                    }
+                                    if (imported.heroEquipment.isNotBlank()) {
+                                        heroEquipment = imported.heroEquipment
+                                        prefs.edit().putString("attack_hero_equipment_$profileKey", heroEquipment).apply()
+                                    }
+                                    if (imported.builderTroops.isNotBlank()) {
+                                        builderTroopSetup = imported.builderTroops
+                                        prefs.edit().putString("attack_builder_troops_$profileKey", builderTroopSetup).apply()
+                                    }
+                                    if (imported.builderHeroes.isNotBlank()) {
+                                        builderHeroSetup = imported.builderHeroes
+                                        prefs.edit().putString("attack_builder_heroes_$profileKey", builderHeroSetup).apply()
+                                    }
+                                    if (imported.siegeMachine.isNotBlank()) {
+                                        siegeSetup = imported.siegeMachine
+                                        prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply()
+                                    }
+                                    prepared = false
+                                    villageImportStatus = "Imported ${imported.importedEntries} entries. Unknown IDs: ${imported.entriesWithoutKnownNames}; missing levels: ${imported.entriesWithoutLevels}."
+                                } else {
+                                    villageImportStatus = importedResult.exceptionOrNull()?.message ?: "Village army data could not be imported."
                                 }
                             },
                             modifier = Modifier.fillMaxWidth()
