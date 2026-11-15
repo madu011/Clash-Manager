@@ -46,6 +46,21 @@ class VillageAttackProfileImporterTest {
     }
 
     @Test
+    fun importsPetsWhenTheValidatedGameDataPackContainsTheirNames() {
+        val json = """{"pets":[{"data":73000000,"lvl":5,"cnt":1}]}"""
+        val pack = GameDataPackParser.parse(
+            """{"schemaVersion":1,"dataPackVersion":2,"items":[{"dataId":73000000,"name":"Test Pet","base":"home","category":"pets","maxLevel":10}]}""",
+            2
+        )
+
+        val result = VillageAttackProfileImporter.fromVillageExport(json, pack)
+
+        assertEquals("Test Pet x 1", result.pets)
+        assertEquals(1, result.importedEntries)
+        assertEquals(0, result.entriesWithoutKnownNames)
+    }
+
+    @Test
     fun rejectsExportWithoutRecognisedCollections() {
         try {
             VillageAttackProfileImporter.fromVillageExport("""{"unrelated":[]}""")
