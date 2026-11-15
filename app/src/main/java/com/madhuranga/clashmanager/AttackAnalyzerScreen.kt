@@ -66,6 +66,9 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var troopLevels by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_levels_$profileKey", "") ?: "") }
     var spellSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_spells_$profileKey", "") ?: "") }
     var heroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_heroes_$profileKey", "") ?: "") }
+    var petSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_pets_$profileKey", "") ?: "") }
+    var builderTroopSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_builder_troops_$profileKey", "") ?: "") }
+    var builderHeroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_builder_heroes_$profileKey", "") ?: "") }
     var heroEquipment by remember(profileKey) { mutableStateOf(prefs.getString("attack_hero_equipment_$profileKey", "") ?: "") }
     var siegeSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_$profileKey", "") ?: "") }
     var troopCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_capacity_$profileKey", "") ?: "") }
