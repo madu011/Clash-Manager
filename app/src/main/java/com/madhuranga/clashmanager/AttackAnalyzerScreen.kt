@@ -259,6 +259,20 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         hasScreenshot = screenshotUri != null,
                         notes = notes
                     )
+                    val configuredTroops = countConfiguredUnits(troopSetup)
+                    val configuredSpells = countConfiguredUnits(spellSetup)
+                    val troopLimit = troopCapacity.toIntOrNull()
+                    val spellLimit = spellCapacity.toIntOrNull()
+                    val siegeLimit = siegeCapacity.toIntOrNull()
+                    if (troopLimit != null && configuredTroops > troopLimit) {
+                        validationErrors = validationErrors + "Troop army exceeds capacity by ${configuredTroops - troopLimit}."
+                    }
+                    if (spellLimit != null && configuredSpells > spellLimit) {
+                        validationErrors = validationErrors + "Spell army exceeds capacity by ${configuredSpells - spellLimit}."
+                    }
+                    if (siegeLimit != null && !siegeSetup.isBlank() && siegeLimit < 1) {
+                        validationErrors = validationErrors + "No siege machine slot is available for the selected siege machine."
+                    }
                     val imageError = screenshotUri?.let { uri ->
                         val imageSize = runCatching {
                             context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length }
