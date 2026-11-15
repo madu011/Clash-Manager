@@ -128,69 +128,49 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text("⚔️", fontSize = 20.sp)
                             Spacer(Modifier.width(8.dp))
                             Column(Modifier.weight(1f)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        val result = runCatching { loadVillageAttackProfile(context, prefs, profileKey) }
+                                        if (result.isSuccess) {
+                                            val data = result.getOrThrow()
+                                            troopSetup = data.troops
+                                            troopLevels = data.troopLevels
+                                            spellSetup = data.spells
+                                            heroSetup = data.heroes
+                                            petSetup = data.pets
+                                            heroEquipment = data.heroEquipment
+                                            builderTroopSetup = data.builderTroops
+                                            builderHeroSetup = data.builderHeroes
+                                            siegeSetup = data.siegeMachine
+                                            prefs.edit()
+                                                .putString("attack_troops_$profileKey", troopSetup)
+                                                .putString("attack_troop_levels_$profileKey", troopLevels)
+                                                .putString("attack_spells_$profileKey", spellSetup)
+                                                .putString("attack_heroes_$profileKey", heroSetup)
+                                                .putString("attack_pets_$profileKey", petSetup)
+                                                .putString("attack_hero_equipment_$profileKey", heroEquipment)
+                                                .putString("attack_builder_troops_$profileKey", builderTroopSetup)
+                                                .putString("attack_builder_heroes_$profileKey", builderHeroSetup)
+                                                .putString("attack_siege_$profileKey", siegeSetup)
+                                                .apply()
+                                            prepared = false
+                                            villageImportStatus = "Imported ${data.importedEntries} entries • Unknown IDs: ${data.entriesWithoutKnownNames} • Missing levels: ${data.entriesWithoutLevels}"
+                                        } else {
+                                            villageImportStatus = result.exceptionOrNull()?.message ?: "Import failed."
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { Text("IMPORT VILLAGE ARMY DATA") }
+                                if (villageImportStatus.isNotBlank()) {
+                                    Text(villageImportStatus, color = muted, fontSize = 10.sp)
+                                }
                                 Text("ARMY COMPOSITION", color = gold, fontWeight = FontWeight.ExtraBold)
                                 Text("Your own troop, spell and hero details", color = muted, fontSize = 10.sp)
                             }
                             Text("MANUAL", color = Color(0xFF9BE7A8), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
-                        OutlinedButton(
-                            onClick = {
-                                val importedResult = runCatching {
-                                    loadVillageAttackProfile(context, prefs, profileKey)
-                                }
-                                if (importedResult.isSuccess) {
-                                    val imported = importedResult.getOrThrow()
-                                    if (imported.troops.isNotBlank()) {
-                                        troopSetup = imported.troops
-                                        prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply()
-                                    }
-                                    if (imported.troopLevels.isNotBlank()) {
-                                        troopLevels = imported.troopLevels
-                                        prefs.edit().putString("attack_troop_levels_$profileKey", troopLevels).apply()
-                                    }
-                                    if (imported.spells.isNotBlank()) {
-                                        spellSetup = imported.spells
-                                        prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply()
-                                    }
-                                    if (imported.heroes.isNotBlank()) {
-                                        heroSetup = imported.heroes
-                                        prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply()
-                                    }
-                                    if (imported.pets.isNotBlank()) {
-                                        petSetup = imported.pets
-                                        prefs.edit().putString("attack_pets_$profileKey", petSetup).apply()
-                                    }
-                                    if (imported.heroEquipment.isNotBlank()) {
-                                        heroEquipment = imported.heroEquipment
-                                        prefs.edit().putString("attack_hero_equipment_$profileKey", heroEquipment).apply()
-                                    }
-                                    if (imported.builderTroops.isNotBlank()) {
-                                        builderTroopSetup = imported.builderTroops
-                                        prefs.edit().putString("attack_builder_troops_$profileKey", builderTroopSetup).apply()
-                                    }
-                                    if (imported.builderHeroes.isNotBlank()) {
-                                        builderHeroSetup = imported.builderHeroes
-                                        prefs.edit().putString("attack_builder_heroes_$profileKey", builderHeroSetup).apply()
-                                    }
-                                    if (imported.siegeMachine.isNotBlank()) {
-                                        siegeSetup = imported.siegeMachine
-                                        prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply()
-                                    }
-                                    prepared = false
-                                    villageImportStatus = "Imported ${imported.importedEntries} entries. Unknown IDs: ${imported.entriesWithoutKnownNames}; missing levels: ${imported.entriesWithoutLevels}."
-                                } else {
-                                    villageImportStatus = importedResult.exceptionOrNull()?.message ?: "Village army data could not be imported."
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("IMPORT FROM VILLAGE EXPORT")
-                        }
-                        if (villageImportStatus.isNotBlank()) {
-                            Text(villageImportStatus, color = muted, fontSize = 10.sp)
-                        }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            listOf("TROOPS", "SPELLS", "HEROES", "PETS", "EQUIPMENT", "BUILDER").forEach { section ->
+                            listOf("TROOPS", "SPELLS", "HEROES", "EQUIPMENT").forEach { section ->
                                 val selected = armySection == section
                                 Surface(
                                     modifier = Modifier.weight(1f),
@@ -211,12 +191,6 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             }
                             "SPELLS" -> OutlinedTextField(spellSetup, { value -> spellSetup = value.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", value.take(800)).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
                             "HEROES" -> OutlinedTextField(heroSetup, { value -> heroSetup = value.take(500); prepared = false; prefs.edit().putString("attack_heroes_$profileKey", value.take(500)).apply() }, label = { Text("Hero levels") }, placeholder = { Text("Example: Barbarian King Lv 90, Archer Queen Lv 95") }, minLines = 3, modifier = Modifier.fillMaxWidth())
-                            "PETS" -> OutlinedTextField(petSetup, { value -> petSetup = value.take(800); prepared = false; prefs.edit().putString("attack_pets_$profileKey", value.take(800)).apply() }, label = { Text("Pets and levels") }, placeholder = { Text("Imported from your village export") }, minLines = 3, modifier = Modifier.fillMaxWidth())
-                            "BUILDER" -> {
-                                Text("BUILDER BASE ARMY", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                                OutlinedTextField(builderTroopSetup, { value -> builderTroopSetup = value.take(1000); prepared = false; prefs.edit().putString("attack_builder_troops_$profileKey", value.take(1000)).apply() }, label = { Text("Builder troops and levels") }, minLines = 3, modifier = Modifier.fillMaxWidth())
-                                OutlinedTextField(builderHeroSetup, { value -> builderHeroSetup = value.take(500); prepared = false; prefs.edit().putString("attack_builder_heroes_$profileKey", value.take(500)).apply() }, label = { Text("Builder heroes and levels") }, minLines = 2, modifier = Modifier.fillMaxWidth())
-                            }
                             else -> {
                                 Text("Record equipment selected for each hero. Use the names shown in your current game version.", color = muted, fontSize = 11.sp)
                                 OutlinedTextField(heroEquipment, { value -> heroEquipment = value.take(1000); prepared = false; prefs.edit().putString("attack_hero_equipment_$profileKey", value.take(1000)).apply() }, label = { Text("Hero equipment selection") }, placeholder = { Text("Example: Barbarian King: Giant Gauntlet, Rage Vial\nArcher Queen: Frozen Arrow, Invisibility Vial") }, minLines = 4, modifier = Modifier.fillMaxWidth())
@@ -329,12 +303,6 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text(spellSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🦸 HEROES", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text(heroSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
-                            Text("🐾 PETS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(petSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
-                            Text("🛠️ BUILDER BASE TROOPS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(builderTroopSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
-                            Text("🦾 BUILDER BASE HERO", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(builderHeroSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🎖️ HERO EQUIPMENT", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text(heroEquipment.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🏰 SIEGE MACHINE", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
@@ -356,7 +324,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("targetTownHall", targetTownHall); put("goal", goal)
                             put("notes", notes)
                             put("troops", troopSetup); put("troopLevels", troopLevels); put("spells", spellSetup)
-                            put("heroes", heroSetup); put("pets", petSetup); put("heroEquipment", heroEquipment); put("builderTroops", builderTroopSetup); put("builderHeroes", builderHeroSetup); put("siegeMachine", siegeSetup)
+                            put("heroes", heroSetup); put("heroEquipment", heroEquipment); put("siegeMachine", siegeSetup)
                             put("troopCapacity", troopCapacity); put("spellCapacity", spellCapacity); put("siegeCapacity", siegeCapacity)
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
@@ -400,10 +368,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                     troopLevels = plan.optString("troopLevels")
                                     spellSetup = plan.optString("spells")
                                     heroSetup = plan.optString("heroes")
-                                    petSetup = plan.optString("pets")
                                     heroEquipment = plan.optString("heroEquipment")
-                                    builderTroopSetup = plan.optString("builderTroops")
-                                    builderHeroSetup = plan.optString("builderHeroes")
                                     siegeSetup = plan.optString("siegeMachine")
                                     troopCapacity = plan.optString("troopCapacity")
                                     spellCapacity = plan.optString("spellCapacity")
