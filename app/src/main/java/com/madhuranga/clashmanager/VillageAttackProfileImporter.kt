@@ -10,6 +10,9 @@ data class ImportedAttackProfile(
     val spells: String,
     val heroes: String,
     val pets: String,
+    val heroEquipment: String,
+    val builderTroops: String,
+    val builderHeroes: String,
     val siegeMachine: String,
     val importedEntries: Int,
     val entriesWithoutKnownNames: Int,
@@ -41,6 +44,9 @@ object VillageAttackProfileImporter {
         val spells = namedItems("spells")
         val heroes = namedItems("heroes")
         val pets = namedItems("pets")
+        val equipment = namedItems("equipment")
+        val builderTroops = namedItems("units2")
+        val builderHeroes = namedItems("heroes2")
         val siege = namedItems("siege_machines")
 
         fun quantities(items: List<Pair<ExportItem, String>>): String =
@@ -55,13 +61,26 @@ object VillageAttackProfileImporter {
             item.level?.let { "$name Lv $it" }
         }.distinct().joinToString(", ")
 
-        val importedCount = troops.size + spells.size + heroes.size + pets.size + siege.size
+        val importedCount = troops.size + spells.size + heroes.size + pets.size + equipment.size + builderTroops.size + builderHeroes.size + siege.size
         return ImportedAttackProfile(
             troops = quantities(troops),
             troopLevels = levels(troops),
             spells = quantities(spells),
             heroes = heroLevels,
-            pets = quantities(pets),
+            pets = pets.joinToString(", ") { (item, name) ->
+                val level = item.level?.let { " Lv $it" } ?: ""
+                "$name$level x ${item.count}"
+            },
+            heroEquipment = equipment.joinToString(", ") { (item, name) ->
+                item.level?.let { "$name Lv $it" } ?: name
+            }.distinct(),
+            builderTroops = builderTroops.joinToString(", ") { (item, name) ->
+                val level = item.level?.let { " Lv $it" } ?: ""
+                "$name$level x ${item.count}"
+            },
+            builderHeroes = builderHeroes.mapNotNull { (item, name) ->
+                item.level?.let { "$name Lv $it" }
+            }.distinct().joinToString(", "),
             siegeMachine = siege.firstOrNull()?.second.orEmpty(),
             importedEntries = importedCount,
             entriesWithoutKnownNames = unknownNames,
