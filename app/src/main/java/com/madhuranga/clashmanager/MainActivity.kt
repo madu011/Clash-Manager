@@ -619,6 +619,118 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         )
                     }
                     item {
+                        val recoverySnapshot = remember(exportSummary, profileKey) {
+                            prefs.getString("village_export_json_$profileKey", null)?.let { raw ->
+                                runCatching { VillageExportParser.parse(raw) }.getOrNull()
+                            }
+                        }
+                        val recoveryCoverage = remember(recoverySnapshot) {
+                            recoverySnapshot?.let(VillageExportCoverageAnalyzer::analyze)
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text("VILLAGE RECOVERY DASHBOARD", color = Gold, fontWeight = FontWeight.ExtraBold)
+                                if (recoverySnapshot == null || recoveryCoverage == null) {
+                                    Text("Import a village JSON export to see your recovery overview.", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    Text("PLAYER ${recoverySnapshot.playerTag ?: playerTag}", color = Color.White, fontSize = 11.sp)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("ITEMS", recoveryCoverage.totalItems.toString(), "📦", Modifier.weight(1f))
+                                        VillageStatTile("MATCHED", recoveryCoverage.catalogMatchedItems.toString(), "✅", Modifier.weight(1f))
+                                        VillageStatTile("UNKNOWN IDs", recoveryCoverage.catalogUnmatchedItems.toString(), "❔", Modifier.weight(1f))
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("COLLECTIONS", recoveryCoverage.collectionsWithItems.toString(), "🗂️", Modifier.weight(1f))
+                                        VillageStatTile("NO DETAILS", recoveryCoverage.collectionsWithoutItemDetails.toString(), "⚠️", Modifier.weight(1f))
+                                    }
+                                    Text("Imported sections: ${recoverySnapshot.sections.joinToString(" • ") { it.key }}", color = Muted, fontSize = 10.sp)
+                                    Text("Unknown IDs mean the local catalogue does not yet recognise those entries; they are not confirmed missing village items.", color = Muted, fontSize = 10.sp)
+                                    val buildingEntries = recoverySnapshot.categories
+                                        .filter { it.key == "buildings" || it.key == "buildings2" }
+                                        .flatMap { category ->
+                                            category.items.map { item ->
+                                                val label = GameDataCatalog.nameFor(item.dataId, category.key) ?: "Unknown ID ${item.dataId}"
+                                                Triple(label, item.level, item.count)
+                                            }
+                                        }
+                                        .sortedWith(compareBy<Triple<String, Int?, Int>> { it.second ?: Int.MAX_VALUE }.thenBy { it.first })
+                                    val buildingsWithLevels = buildingEntries.count { it.second != null }
+                                    val buildingsWithoutLevels = buildingEntries.count { it.second == null }
+                                    Divider(color = Color(0xFF51452F))
+                                    Text("BUILDING LEVEL RECOVERY", color = Gold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("BUILDINGS", buildingEntries.size.toString(), "🏰", Modifier.weight(1f))
+                                        VillageStatTile("LEVEL KNOWN", buildingsWithLevels.toString(), "📊", Modifier.weight(1f))
+                                        VillageStatTile("NO LEVEL", buildingsWithoutLevels.toString(), "❔", Modifier.weight(1f))
+                                    }
+                                    if (buildingEntries.isEmpty()) {
+                                        Text("No building entries were found in this export.", color = Muted, fontSize = 11.sp)
+                                    } else {
+                                        buildingEntries.take(8).forEach { entry ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(entry.first, color = Color.White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                                                Text(
+                                                    (entry.second?.let { "Level $it" } ?: "Level unavailable") + if (entry.third > 1) " ×${entry.third}" else "",
+                                                    color = if (entry.second == null) Muted else Color(0xFFFFE3A0),
+                                                    fontSize = 10.sp
+                                                )
+                                            }
+                                        }
+                                        if (buildingEntries.size > 8) {
+                                            Text("Showing 8 of ${buildingEntries.size} building entries.", color = Muted, fontSize = 10.sp)
+                                        }
+                                    }
+                                    val recoveryTownHall = thLevel.toIntOrNull()
+                                    val upgradeChecks = recoverySnapshot.categories
+                                        .filter { it.key == "buildings" || it.key == "buildings2" }
+                                        .flatMap { category ->
+                                            category.items.map { item ->
+                                                val name = BuildingUpgradeCatalog.buildingName(item.dataId)
+                                                val maximum = recoveryTownHall?.let {
+                                                    BuildingUpgradeCatalog.maximumLevelAt(item.dataId, it)
+                                                }
+                                                Triple(name, item.level, maximum)
+                                            }
+                                        }
+                                    val upgradeReady = upgradeChecks.count { (_, level, maximum) ->
+                                        level != null && maximum != null && level < maximum
+                                    }
+                                    val atTownHallLimit = upgradeChecks.count { (_, level, maximum) ->
+                                        level != null && maximum != null && level >= maximum
+                                    }
+                                    val needsLevelData = upgradeChecks.count { (_, level, _) -> level == null }
+                                    val unsupportedUpgradeData = upgradeChecks.count { (name, level, maximum) ->
+                                        level != null && (name == null || maximum == null)
+                                    }
+                                    Divider(color = Color(0xFF51452F))
+                                    Text("MISSING UPGRADE DETECTION", color = Gold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    if ((recoveryTownHall ?: 0) !in 1..18) {
+                                        Text("Enter a valid Town Hall level in Village Tools to compare supported buildings against Town Hall limits.", color = Muted, fontSize = 11.sp)
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                            VillageStatTile("UPGRADE READY", upgradeReady.toString(), "⬆️", Modifier.weight(1f))
+                                            VillageStatTile("AT TH LIMIT", atTownHallLimit.toString(), "🏁", Modifier.weight(1f))
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                            VillageStatTile("NO LEVEL", needsLevelData.toString(), "❔", Modifier.weight(1f))
+                                            VillageStatTile("NOT COVERED", unsupportedUpgradeData.toString(), "🧩", Modifier.weight(1f))
+                                        }
+                                        upgradeChecks.filter { (name, level, maximum) ->
+                                            name != null && level != null && maximum != null && level < maximum
+                                        }.take(6).forEach { (name, level, maximum) ->
+                                            Text("${name}: Lv ${level} → ${level!! + 1} (Town Hall limit: ${maximum})", color = Color(0xFFFFE3A0), fontSize = 11.sp)
+                                        }
+                                        Text("This checks only buildings covered by the app's verified upgrade catalogue. It does not claim that unsupported buildings are missing upgrades.", color = Muted, fontSize = 10.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("HOME SCREEN WIDGET", color = Gold, fontWeight = FontWeight.Bold)
