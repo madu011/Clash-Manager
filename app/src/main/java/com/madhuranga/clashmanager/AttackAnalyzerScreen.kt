@@ -50,6 +50,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var troopLevels by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_levels_$profileKey", "") ?: "") }
     var spellSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_spells_$profileKey", "") ?: "") }
     var heroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_heroes_$profileKey", "") ?: "") }
+    var petSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_pets_$profileKey", "") ?: "") }
     var heroEquipment by remember(profileKey) { mutableStateOf(prefs.getString("attack_hero_equipment_$profileKey", "") ?: "") }
     var siegeSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_$profileKey", "") ?: "") }
     var troopCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_capacity_$profileKey", "") ?: "") }
@@ -144,6 +145,10 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                             heroSetup = imported.heroes
                                             prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply()
                                         }
+                                        if (imported.pets.isNotBlank()) {
+                                            petSetup = imported.pets
+                                            prefs.edit().putString("attack_pets_$profileKey", petSetup).apply()
+                                        }
                                         if (imported.siegeMachine.isNotBlank()) {
                                             siegeSetup = imported.siegeMachine
                                             prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply()
@@ -167,7 +172,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text(villageImportStatus, color = muted, fontSize = 10.sp)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            listOf("TROOPS", "SPELLS", "HEROES", "EQUIPMENT").forEach { section ->
+                            listOf("TROOPS", "SPELLS", "HEROES", "PETS", "EQUIPMENT").forEach { section ->
                                 val selected = armySection == section
                                 Surface(
                                     modifier = Modifier.weight(1f),
@@ -188,6 +193,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             }
                             "SPELLS" -> OutlinedTextField(spellSetup, { value -> spellSetup = value.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", value.take(800)).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
                             "HEROES" -> OutlinedTextField(heroSetup, { value -> heroSetup = value.take(500); prepared = false; prefs.edit().putString("attack_heroes_$profileKey", value.take(500)).apply() }, label = { Text("Hero levels") }, placeholder = { Text("Example: Barbarian King Lv 90, Archer Queen Lv 95") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                            "PETS" -> OutlinedTextField(petSetup, { value -> petSetup = value.take(800); prepared = false; prefs.edit().putString("attack_pets_$profileKey", value.take(800)).apply() }, label = { Text("Pets and quantities") }, placeholder = { Text("Imported from your village export") }, minLines = 3, modifier = Modifier.fillMaxWidth())
                             else -> {
                                 Text("Record equipment selected for each hero. Use the names shown in your current game version.", color = muted, fontSize = 11.sp)
                                 OutlinedTextField(heroEquipment, { value -> heroEquipment = value.take(1000); prepared = false; prefs.edit().putString("attack_hero_equipment_$profileKey", value.take(1000)).apply() }, label = { Text("Hero equipment selection") }, placeholder = { Text("Example: Barbarian King: Giant Gauntlet, Rage Vial\nArcher Queen: Frozen Arrow, Invisibility Vial") }, minLines = 4, modifier = Modifier.fillMaxWidth())
@@ -300,6 +306,8 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             Text(spellSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🦸 HEROES", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text(heroSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
+                            Text("🐾 PETS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(petSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🎖️ HERO EQUIPMENT", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             Text(heroEquipment.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
                             Text("🏰 SIEGE MACHINE", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
@@ -321,7 +329,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("targetTownHall", targetTownHall); put("goal", goal)
                             put("notes", notes)
                             put("troops", troopSetup); put("troopLevels", troopLevels); put("spells", spellSetup)
-                            put("heroes", heroSetup); put("heroEquipment", heroEquipment); put("siegeMachine", siegeSetup)
+                            put("heroes", heroSetup); put("pets", petSetup); put("heroEquipment", heroEquipment); put("siegeMachine", siegeSetup)
                             put("troopCapacity", troopCapacity); put("spellCapacity", spellCapacity); put("siegeCapacity", siegeCapacity)
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
@@ -365,6 +373,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                     troopLevels = plan.optString("troopLevels")
                                     spellSetup = plan.optString("spells")
                                     heroSetup = plan.optString("heroes")
+                                    petSetup = plan.optString("pets")
                                     heroEquipment = plan.optString("heroEquipment")
                                     siegeSetup = plan.optString("siegeMachine")
                                     troopCapacity = plan.optString("troopCapacity")
