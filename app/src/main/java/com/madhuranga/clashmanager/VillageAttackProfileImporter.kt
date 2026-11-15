@@ -71,9 +71,9 @@ object VillageAttackProfileImporter {
                 val level = item.level?.let { " Lv $it" } ?: ""
                 "$name$level x ${item.count}"
             },
-            heroEquipment = equipment.joinToString(", ") { (item, name) ->
+            heroEquipment = equipment.map { (item, name) ->
                 item.level?.let { "$name Lv $it" } ?: name
-            }.distinct(),
+            }.distinct().joinToString(", "),
             builderTroops = builderTroops.joinToString(", ") { (item, name) ->
                 val level = item.level?.let { " Lv $it" } ?: ""
                 "$name$level x ${item.count}"
