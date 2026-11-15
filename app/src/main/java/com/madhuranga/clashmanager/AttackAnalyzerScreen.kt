@@ -485,7 +485,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         val exportableResults = attackResults.mapNotNull { raw -> runCatching { JSONObject(raw) }.getOrNull() }
                         val csvCell: (String) -> String = { value -> "\"" + value.replace("\"", "\"\"") + "\"" }
                         val csvContent = buildString {
-                            append("Mode,Target Town Hall,Goal,Stars,Destruction Percent,Notes,Recorded At\\n")
+                            append("Mode,Target Town Hall,Goal,Stars,Destruction Percent,Notes,Recorded At\n")
                             exportableResults.forEach { item ->
                                 val values = listOf(
                                     item.optString("mode"),
@@ -497,7 +497,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                     item.optLong("recordedAt").toString()
                                 )
                                 append(values.joinToString(",") { csvCell(it) })
-                                append('\\n')
+                                append('\n')
                             }
                         }
                         val jsonContent = JSONArray().apply {
