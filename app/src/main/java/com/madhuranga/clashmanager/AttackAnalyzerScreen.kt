@@ -1,6 +1,7 @@
 package com.madhuranga.clashmanager
 
 import android.net.Uri
+import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -471,6 +472,64 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             }
                             Text("Statistics use only the results you recorded on this device. They are not predictions of future attacks.", color = muted, fontSize = 10.sp)
                         }
+                    }
+                }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF80643B))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("EXPORT ATTACK RESULTS", color = gold, fontWeight = FontWeight.ExtraBold)
+                        Text("Share your recorded battle history as a CSV spreadsheet or JSON data.", color = muted, fontSize = 10.sp)
+                        val exportableResults = attackResults.mapNotNull { raw -> runCatching { JSONObject(raw) }.getOrNull() }
+                        val csvCell: (String) -> String = { value -> "\"" + value.replace("\"", "\"\"") + "\"" }
+                        val csvContent = buildString {
+                            append("Mode,Target Town Hall,Goal,Stars,Destruction Percent,Notes,Recorded At\\n")
+                            exportableResults.forEach { item ->
+                                val values = listOf(
+                                    item.optString("mode"),
+                                    item.optString("targetTownHall"),
+                                    item.optString("goal"),
+                                    item.optInt("stars").toString(),
+                                    item.optInt("destructionPercent").toString(),
+                                    item.optString("notes"),
+                                    item.optLong("recordedAt").toString()
+                                )
+                                append(values.joinToString(",") { csvCell(it) })
+                                append('\\n')
+                            }
+                        }
+                        val jsonContent = JSONArray().apply {
+                            exportableResults.forEach { put(it) }
+                        }.toString(2)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    val send = Intent(Intent.ACTION_SEND).apply {
+                                        type = "text/csv"
+                                        putExtra(Intent.EXTRA_SUBJECT, "Clash Manager attack results")
+                                        putExtra(Intent.EXTRA_TEXT, csvContent)
+                                    }
+                                    context.startActivity(Intent.createChooser(send, "Share CSV results"))
+                                },
+                                enabled = exportableResults.isNotEmpty(),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("EXPORT CSV") }
+                            OutlinedButton(
+                                onClick = {
+                                    val send = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/json"
+                                        putExtra(Intent.EXTRA_SUBJECT, "Clash Manager attack results")
+                                        putExtra(Intent.EXTRA_TEXT, jsonContent)
+                                    }
+                                    context.startActivity(Intent.createChooser(send, "Share JSON results"))
+                                },
+                                enabled = exportableResults.isNotEmpty(),
+                                modifier = Modifier.weight(1f)
+                            ) { Text("EXPORT JSON") }
+                        }
+                        Text(if (exportableResults.isEmpty()) "Record at least one attack result to enable export." else "${exportableResults.size} recorded result(s) ready to share. The export contains only attack results, not screenshots or login details.", color = muted, fontSize = 10.sp)
                     }
                 }
                 Text("FULL ANALYSIS ROADMAP", color = gold, fontWeight = FontWeight.Bold)
