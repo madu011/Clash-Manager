@@ -652,4 +652,3 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
             }
         }
     }
-}
