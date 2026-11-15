@@ -214,6 +214,38 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                     Text("$mode • TH$ownTownHall vs TH$targetTownHall • Goal: $goal", color = Color.White)
                     Text("The image is selected and the attack scenario is recorded on screen. Automated image recognition, troop-level matching and probability calculation require the next analysis-engine/backend integration; this screen does not invent a troop army or success score.", color = muted, fontSize = 12.sp)
                     Text("Hidden traps, defending Clan Castle troops, unseen levels, timing and player execution prevent a guaranteed 100% result.", color = Color(0xFFFFD18A), fontSize = 12.sp)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                            Text("ATTACK PLAN SUMMARY", color = gold, fontWeight = FontWeight.ExtraBold)
+                            CapacityStatusRow("MODE", mode, false, gold, Color.White)
+                            CapacityStatusRow("TOWN HALL", "TH$ownTownHall → TH$targetTownHall", false, gold, Color.White)
+                            CapacityStatusRow("STAR GOAL", goal, false, gold, Color.White)
+                            Divider(color = Color(0xFF465365))
+                            Text("⚔️ TROOPS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(troopSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
+                            if (troopLevels.isNotBlank()) Text("Levels: $troopLevels", color = muted, fontSize = 10.sp)
+                            Text("✨ SPELLS", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(spellSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
+                            Text("🦸 HEROES", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(heroSetup.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
+                            Text("🎖️ HERO EQUIPMENT", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(heroEquipment.ifBlank { "Not entered" }, color = Color.White, fontSize = 11.sp)
+                            Text("🏰 SIEGE MACHINE", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(siegeSetup.ifBlank { "Not selected" }, color = Color.White, fontSize = 11.sp)
+                            Divider(color = Color(0xFF465365))
+                            CapacityStatusRow("TROOP CAPACITY", if (troopCapacity.isBlank()) "Not entered" else "$troopCapacity available • $usedTroops listed", false, gold, muted)
+                            CapacityStatusRow("SPELL CAPACITY", if (spellCapacity.isBlank()) "Not entered" else "$spellCapacity available • $usedSpells listed", false, gold, muted)
+                            CapacityStatusRow("SIEGE SLOTS", if (siegeCapacity.isBlank()) "Not entered" else "$siegeCapacity available", false, gold, muted)
+                            CapacityStatusRow("BASE SCREENSHOT", if (screenshotUri == null) "Not attached" else "Attached", false, gold, muted)
+                            if (notes.isNotBlank()) {
+                                Text("BASE NOTES", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text(notes, color = Color.White, fontSize = 11.sp)
+                            }
+                        }
+                    }
                     Button(onClick = {
                         val item = JSONObject().apply {
                             put("mode", mode); put("ownTownHall", ownTownHall)
