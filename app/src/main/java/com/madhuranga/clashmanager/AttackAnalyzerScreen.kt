@@ -16,6 +16,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private fun countConfiguredUnits(input: String): Int {
+    val patterns = listOf(
+        Regex("(?i)\\bx\\s*(\\d+)\\b"),
+        Regex("(?i)\\b(\\d+)\\s*x\\b")
+    )
+    return patterns.flatMap { regex ->
+        regex.findAll(input).mapNotNull { it.groupValues.getOrNull(1)?.toIntOrNull() }
+    }.sum()
+}
+
+@Composable
+private fun CapacityStatusRow(label: String, value: String, isOver: Boolean, gold: Color, muted: Color) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = gold, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+        Text(value, color = if (isOver) Color(0xFFFF8A80) else muted, fontSize = 10.sp)
+    }
+}
+
 @Composable
 fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreenshot: () -> Unit) {
     var mode by remember { mutableStateOf("Clan War") }
@@ -33,6 +51,9 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var heroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_heroes_$profileKey", "") ?: "") }
     var heroEquipment by remember(profileKey) { mutableStateOf(prefs.getString("attack_hero_equipment_$profileKey", "") ?: "") }
     var siegeSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_$profileKey", "") ?: "") }
+    var troopCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_capacity_$profileKey", "") ?: "") }
+    var spellCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_spell_capacity_$profileKey", "") ?: "") }
+    var siegeCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_capacity_$profileKey", "1") ?: "1") }
     var prepared by remember { mutableStateOf(false) }
     var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
@@ -106,6 +127,50 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         Text("Your troop levels and hero equipment are saved to this player profile. Automatic detection is not active yet.", color = muted, fontSize = 10.sp)
                     }
                 }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF80643B))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text("🏰", fontSize = 20.sp)
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("ARMY CAPACITY", color = gold, fontWeight = FontWeight.ExtraBold)
+                                Text("Enter capacities from your current in-game army", color = muted, fontSize = 10.sp)
+                            }
+                        }
+                        OutlinedTextField(troopCapacity, { value -> troopCapacity = value.filter(Char::isDigit).take(4); prepared = false; prefs.edit().putString("attack_troop_capacity_$profileKey", troopCapacity).apply() }, label = { Text("Troop housing capacity") }, placeholder = { Text("Your available troop space") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(spellCapacity, { value -> spellCapacity = value.filter(Char::isDigit).take(4); prepared = false; prefs.edit().putString("attack_spell_capacity_$profileKey", spellCapacity).apply() }, label = { Text("Spell capacity") }, placeholder = { Text("Your available spell space") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(siegeCapacity, { value -> siegeCapacity = value.filter(Char::isDigit).take(2); prepared = false; prefs.edit().putString("attack_siege_capacity_$profileKey", siegeCapacity).apply() }, label = { Text("Siege machine slots available") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        val usedTroops = countConfiguredUnits(troopSetup)
+                        val usedSpells = countConfiguredUnits(spellSetup)
+                        val troopCap = troopCapacity.toIntOrNull()
+                        val spellCap = spellCapacity.toIntOrNull()
+                        val siegeCap = siegeCapacity.toIntOrNull()
+                        val troopStatus = when {
+                            troopCap == null -> "Capacity not entered"
+                            usedTroops > troopCap -> "Over capacity by ${usedTroops - troopCap}"
+                            else -> "${troopCap - usedTroops} space remaining"
+                        }
+                        val spellStatus = when {
+                            spellCap == null -> "Capacity not entered"
+                            usedSpells > spellCap -> "Over capacity by ${usedSpells - spellCap}"
+                            else -> "${spellCap - usedSpells} space remaining"
+                        }
+                        val siegeUsed = if (siegeSetup.isBlank()) 0 else 1
+                        val siegeStatus = when {
+                            siegeCap == null -> "Capacity not entered"
+                            siegeUsed > siegeCap -> "Over capacity"
+                            else -> "${siegeCap - siegeUsed} slot(s) remaining"
+                        }
+                        CapacityStatusRow("TROOPS", if (troopCap == null) "${usedTroops} used • $troopStatus" else "${usedTroops} / $troopCap • $troopStatus", troopCap != null && usedTroops > troopCap, gold, muted)
+                        CapacityStatusRow("SPELLS", if (spellCap == null) "${usedSpells} used • $spellStatus" else "${usedSpells} / $spellCap • $spellStatus", spellCap != null && usedSpells > spellCap, gold, muted)
+                        CapacityStatusRow("SIEGE", if (siegeCap == null) siegeStatus else "${siegeUsed} / $siegeCap • $siegeStatus", siegeCap != null && siegeUsed > siegeCap, gold, muted)
+                        Text("Counts are estimated from entries formatted as Unit x quantity. Enter each in-game capacity yourself; this is not an automatic game-data lookup.", color = muted, fontSize = 10.sp)
+                    }
+                }
                 Text("ATTACK GOAL", color = gold, fontWeight = FontWeight.Bold)
                 Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("1-star", "2-star", "3-star").forEach {
@@ -156,6 +221,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("notes", notes)
                             put("troops", troopSetup); put("troopLevels", troopLevels); put("spells", spellSetup)
                             put("heroes", heroSetup); put("heroEquipment", heroEquipment); put("siegeMachine", siegeSetup)
+                            put("troopCapacity", troopCapacity); put("spellCapacity", spellCapacity); put("siegeCapacity", siegeCapacity)
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
                         }
