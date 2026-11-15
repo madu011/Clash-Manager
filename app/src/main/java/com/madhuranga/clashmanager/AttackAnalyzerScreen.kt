@@ -391,7 +391,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                         resultNotes = ""
                                     }
                                 },
-                                enabled = resultPlanIndex in savedPlans.indices && (resultDestruction.toIntOrNull() in 0..100),
+                                enabled = resultPlanIndex in savedPlans.indices && ((resultDestruction.toIntOrNull() ?: -1) in 0..100),
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = gold, contentColor = Color(0xFF10141D))
                             ) { Text("SAVE ATTACK RESULT") }
