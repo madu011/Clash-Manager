@@ -200,6 +200,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showAdd by remember { mutableStateOf(false) }
     var tab by remember { mutableStateOf(if (openUpdatesOnStart) "Updates" else "Dashboard") }
+    var villageSection by remember { mutableStateOf("OVERVIEW") }
     LaunchedEffect(latestManifest) {
         val manifest = latestManifest
         if (manifest != null && isMandatoryUpdateRequired(BuildConfig.VERSION_CODE, manifest.minimumSupportedVersionCode)) {
@@ -388,6 +389,25 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
 
                 if (tab == "Village") {
                 item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("VILLAGE COMMAND", color = Gold, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                            listOf("OVERVIEW", "UPGRADES", "IMPORT").forEach { section ->
+                                val selected = villageSection == section
+                                Surface(
+                                    modifier = Modifier.weight(1f).clickable { villageSection = section },
+                                    color = if (selected) Color(0xFF765326) else Color(0xFF263244),
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) Color(0xFFE5BD66) else StoneEdge)
+                                ) {
+                                    Text(section, modifier = Modifier.padding(vertical = 11.dp, horizontal = 4.dp), color = if (selected) Color.White else Muted, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (villageSection == "OVERVIEW") {
+                item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF202A3B)),
                         shape = RoundedCornerShape(20.dp),
@@ -432,6 +452,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             Text(if (playerTag.isBlank()) "No player selected • manual tracker mode" else "Saved locally: $playerTag • live sync not connected yet", color = Color(0xFFCFD6E1), fontSize = 10.sp)
                         }
                     }
+                }
                 }
                 }
                 if (tab == "Dashboard") {
@@ -618,6 +639,8 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             }
                         }
                     }
+                }
+                if (villageSection == "UPGRADES") {
                     item {
                         VillageRecommendationsScreen(
                             playerTag = playerTag,
@@ -722,6 +745,8 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                             }
                         }
                     }
+                }
+                if (villageSection == "IMPORT") {
                     item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
