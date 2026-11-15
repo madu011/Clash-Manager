@@ -708,7 +708,7 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                     }
                                     Divider(color = Color(0xFF51452F))
                                     Text("MISSING UPGRADE DETECTION", color = Gold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                    if (recoveryTownHall !in 1..18) {
+                                    if ((recoveryTownHall ?: 0) !in 1..18) {
                                         Text("Enter a valid Town Hall level in Village Tools to compare supported buildings against Town Hall limits.", color = Muted, fontSize = 11.sp)
                                     } else {
                                         Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
