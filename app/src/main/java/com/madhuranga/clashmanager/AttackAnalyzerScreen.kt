@@ -76,6 +76,9 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var resultStars by remember(resultsKey) { mutableStateOf(0) }
     var resultDestruction by remember(resultsKey) { mutableStateOf("") }
     var resultNotes by remember(resultsKey) { mutableStateOf("") }
+    var resultSearch by remember(resultsKey) { mutableStateOf("") }
+    var resultFromDate by remember(resultsKey) { mutableStateOf("") }
+    var resultToDate by remember(resultsKey) { mutableStateOf("") }
     val panel = Color(0xFF1A2230)
     val gold = Color(0xFFFFC857)
     val muted = Color(0xFF9AA8BA)
@@ -401,10 +404,62 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         if (attackResults.isEmpty()) {
                             Text("No attack results recorded yet.", color = muted, fontSize = 11.sp)
                         } else {
-                            attackResults.forEachIndexed { index, raw ->
-                                val result = runCatching { JSONObject(raw) }.getOrNull()
-                                if (result != null) {
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("SEARCH AND FILTER", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            OutlinedTextField(
+                                value = resultSearch,
+                                onValueChange = { resultSearch = it },
+                                label = { Text("Search mode, notes, target TH or stars") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(
+                                    value = resultFromDate,
+                                    onValueChange = { resultFromDate = it.take(10) },
+                                    label = { Text("From (YYYY-MM-DD)") },
+                                    placeholder = { Text("2026-11-01") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                OutlinedTextField(
+                                    value = resultToDate,
+                                    onValueChange = { resultToDate = it.take(10) },
+                                    label = { Text("To (YYYY-MM-DD)") },
+                                    placeholder = { Text("2026-11-15") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            TextButton(onClick = { resultSearch = ""; resultFromDate = ""; resultToDate = "" }) { Text("CLEAR FILTERS") }
+                            val dateFormat = remember { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).apply { isLenient = false } }
+                            val fromMillis = remember(resultFromDate) {
+                                if (resultFromDate.isBlank()) null else runCatching { dateFormat.parse(resultFromDate)?.time }.getOrNull()
+                            }
+                            val toMillis = remember(resultToDate) {
+                                if (resultToDate.isBlank()) null else runCatching { dateFormat.parse(resultToDate)?.let { it.time + 86_399_999L } }.getOrNull()
+                            }
+                            val filteredResults = attackResults.mapIndexedNotNull { index, raw ->
+                                val result = runCatching { JSONObject(raw) }.getOrNull() ?: return@mapIndexedNotNull null
+                                val recordedAt = result.optLong("recordedAt", 0L)
+                                val query = resultSearch.trim()
+                                val matchesSearch = query.isBlank() || listOf(
+                                    result.optString("mode"),
+                                    result.optString("targetTownHall"),
+                                    result.optString("goal"),
+                                    result.optString("stars"),
+                                    result.optString("destructionPercent"),
+                                    result.optString("notes")
+                                ).any { it.contains(query, ignoreCase = true) }
+                                val matchesFrom = fromMillis == null || recordedAt >= fromMillis
+                                val matchesTo = toMillis == null || recordedAt <= toMillis
+                                if (matchesSearch && matchesFrom && matchesTo) index to result else null
+                            }
+                            Text("${filteredResults.size} of ${attackResults.size} result(s)", color = muted, fontSize = 10.sp)
+                            if (filteredResults.isEmpty()) {
+                                Text("No results match these filters. Check the dates or clear the filters.", color = muted, fontSize = 11.sp)
+                            }
+                            filteredResults.forEach { (index, result) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text("${result.optString("mode")} • ${result.optInt("stars")} ★ • ${result.optInt("destructionPercent")}% ", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
                                             Text("Target TH${result.optString("targetTownHall")} • Goal ${result.optString("goal")}", color = muted, fontSize = 10.sp)
