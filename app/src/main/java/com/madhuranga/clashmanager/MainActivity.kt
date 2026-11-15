@@ -645,6 +645,45 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                     }
                                     Text("Imported sections: ${recoverySnapshot.sections.joinToString(" • ") { it.key }}", color = Muted, fontSize = 10.sp)
                                     Text("Unknown IDs mean the local catalogue does not yet recognise those entries; they are not confirmed missing village items.", color = Muted, fontSize = 10.sp)
+                                    val buildingEntries = recoverySnapshot.categories
+                                        .filter { it.key == "buildings" || it.key == "buildings2" }
+                                        .flatMap { category ->
+                                            category.items.map { item ->
+                                                val label = GameDataCatalog.nameFor(item.dataId, category.key) ?: "Unknown ID ${item.dataId}"
+                                                Triple(label, item.level, item.count)
+                                            }
+                                        }
+                                        .sortedWith(compareBy<Triple<String, Int?, Int>> { it.second ?: Int.MAX_VALUE }.thenBy { it.first })
+                                    val buildingsWithLevels = buildingEntries.count { it.second != null }
+                                    val buildingsWithoutLevels = buildingEntries.count { it.second == null }
+                                    Divider(color = Color(0xFF51452F))
+                                    Text("BUILDING LEVEL RECOVERY", color = Gold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("BUILDINGS", buildingEntries.size.toString(), "🏰", Modifier.weight(1f))
+                                        VillageStatTile("LEVEL KNOWN", buildingsWithLevels.toString(), "📊", Modifier.weight(1f))
+                                        VillageStatTile("NO LEVEL", buildingsWithoutLevels.toString(), "❔", Modifier.weight(1f))
+                                    }
+                                    if (buildingEntries.isEmpty()) {
+                                        Text("No building entries were found in this export.", color = Muted, fontSize = 11.sp)
+                                    } else {
+                                        buildingEntries.take(8).forEach { entry ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(entry.first, color = Color.White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                                                Text(
+                                                    (entry.second?.let { "Level $it" } ?: "Level unavailable") + if (entry.third > 1) " ×${entry.third}" else "",
+                                                    color = if (entry.second == null) Muted else Color(0xFFFFE3A0),
+                                                    fontSize = 10.sp
+                                                )
+                                            }
+                                        }
+                                        if (buildingEntries.size > 8) {
+                                            Text("Showing 8 of ${buildingEntries.size} building entries.", color = Muted, fontSize = 10.sp)
+                                        }
+                                    }
                                 }
                             }
                         }
