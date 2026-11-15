@@ -619,6 +619,37 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                         )
                     }
                     item {
+                        val recoverySnapshot = remember(exportSummary, profileKey) {
+                            prefs.getString("village_export_json_$profileKey", null)?.let { raw ->
+                                runCatching { VillageExportParser.parse(raw) }.getOrNull()
+                            }
+                        }
+                        val recoveryCoverage = remember(recoverySnapshot) {
+                            recoverySnapshot?.let(VillageExportCoverageAnalyzer::analyze)
+                        }
+                        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Text("VILLAGE RECOVERY DASHBOARD", color = Gold, fontWeight = FontWeight.ExtraBold)
+                                if (recoverySnapshot == null || recoveryCoverage == null) {
+                                    Text("Import a village JSON export to see your recovery overview.", color = Muted, fontSize = 12.sp)
+                                } else {
+                                    Text("PLAYER ${recoverySnapshot.playerTag ?: playerTag}", color = Color.White, fontSize = 11.sp)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("ITEMS", recoveryCoverage.totalItems.toString(), "📦", Modifier.weight(1f))
+                                        VillageStatTile("MATCHED", recoveryCoverage.catalogMatchedItems.toString(), "✅", Modifier.weight(1f))
+                                        VillageStatTile("UNKNOWN IDs", recoveryCoverage.catalogUnmatchedItems.toString(), "❔", Modifier.weight(1f))
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                        VillageStatTile("COLLECTIONS", recoveryCoverage.collectionsWithItems.toString(), "🗂️", Modifier.weight(1f))
+                                        VillageStatTile("NO DETAILS", recoveryCoverage.collectionsWithoutItemDetails.toString(), "⚠️", Modifier.weight(1f))
+                                    }
+                                    Text("Imported sections: ${recoverySnapshot.sections.joinToString(" • ") { it.key }}", color = Muted, fontSize = 10.sp)
+                                    Text("Unknown IDs mean the local catalogue does not yet recognise those entries; they are not confirmed missing village items.", color = Muted, fontSize = 10.sp)
+                                }
+                            }
+                        }
+                    }
+                    item {
                         Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("HOME SCREEN WIDGET", color = Gold, fontWeight = FontWeight.Bold)
