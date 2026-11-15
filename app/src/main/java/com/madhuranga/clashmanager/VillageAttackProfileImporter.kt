@@ -16,7 +16,7 @@ data class ImportedAttackProfile(
 )
 
 object VillageAttackProfileImporter {
-    fun import(rawJson: String, gameDataPack: ParsedGameDataPack? = null): ImportedAttackProfile {
+    fun fromVillageExport(rawJson: String, gameDataPack: ParsedGameDataPack? = null): ImportedAttackProfile {
         val snapshot = VillageExportParser.parse(rawJson)
         val categories = snapshot.categories.associateBy { it.key }
         var unknownNames = 0
