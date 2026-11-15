@@ -458,7 +458,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             if (filteredResults.isEmpty()) {
                                 Text("No results match these filters. Check the dates or clear the filters.", color = muted, fontSize = 11.sp)
                             }
-                            filteredResults.forEach { (index, result) {
+                            filteredResults.forEach { (index, result) ->
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text("${result.optString("mode")} • ${result.optInt("stars")} ★ • ${result.optInt("destructionPercent")}% ", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
