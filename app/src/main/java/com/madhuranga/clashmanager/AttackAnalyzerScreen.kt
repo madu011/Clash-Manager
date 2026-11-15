@@ -56,6 +56,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var spellCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_spell_capacity_$profileKey", "") ?: "") }
     var siegeCapacity by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_capacity_$profileKey", "1") ?: "1") }
     var prepared by remember { mutableStateOf(false) }
+    var villageImportStatus by remember(profileKey) { mutableStateOf("") }
     var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
     var editingPlanIndex by remember(historyKey) { mutableStateOf(-1) }
@@ -112,6 +113,58 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                 Text("Your own troop, spell and hero details", color = muted, fontSize = 10.sp)
                             }
                             Text("MANUAL", color = Color(0xFF9BE7A8), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val rawExport = prefs.getString("village_export_json_$profileKey", null)
+                                if (rawExport.isNullOrBlank()) {
+                                    villageImportStatus = "Import your village JSON on the Village screen first."
+                                } else {
+                                    val activePack = runCatching {
+                                        val packFile = java.io.File(context.filesDir, "game-data/active-pack.json")
+                                        val packJson = packFile.readText(Charsets.UTF_8)
+                                        GameDataPackParser.parse(packJson, JSONObject(packJson).getInt("dataPackVersion"))
+                                    }.getOrNull()
+                                    runCatching {
+                                        VillageAttackProfileImporter.import(rawExport, activePack)
+                                    }.onSuccess { imported ->
+                                        if (imported.troops.isNotBlank()) {
+                                            troopSetup = imported.troops
+                                            prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply()
+                                        }
+                                        if (imported.troopLevels.isNotBlank()) {
+                                            troopLevels = imported.troopLevels
+                                            prefs.edit().putString("attack_troop_levels_$profileKey", troopLevels).apply()
+                                        }
+                                        if (imported.spells.isNotBlank()) {
+                                            spellSetup = imported.spells
+                                            prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply()
+                                        }
+                                        if (imported.heroes.isNotBlank()) {
+                                            heroSetup = imported.heroes
+                                            prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply()
+                                        }
+                                        if (imported.siegeMachine.isNotBlank()) {
+                                            siegeSetup = imported.siegeMachine
+                                            prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply()
+                                        }
+                                        prepared = false
+                                        villageImportStatus = if (imported.importedEntries == 0) {
+                                            "No recognised army entries were found in this export. Check that its game-data pack is current."
+                                        } else {
+                                            "Imported ${imported.importedEntries} known entries. Unknown IDs: ${imported.entriesWithoutKnownNames}; missing levels: ${imported.entriesWithoutLevels}."
+                                        }
+                                    }.onFailure { error ->
+                                        villageImportStatus = error.message ?: "Village army data could not be imported."
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("IMPORT FROM VILLAGE EXPORT")
+                        }
+                        if (villageImportStatus.isNotBlank()) {
+                            Text(villageImportStatus, color = muted, fontSize = 10.sp)
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                             listOf("TROOPS", "SPELLS", "HEROES", "EQUIPMENT").forEach { section ->
