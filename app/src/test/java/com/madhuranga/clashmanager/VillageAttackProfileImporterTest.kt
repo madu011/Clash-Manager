@@ -55,7 +55,7 @@ class VillageAttackProfileImporterTest {
 
         val result = VillageAttackProfileImporter.fromVillageExport(json, pack)
 
-        assertEquals("Test Pet x 1", result.pets)
+        assertEquals("Test Pet Lv 5 x 1", result.pets)
         assertEquals(1, result.importedEntries)
         assertEquals(0, result.entriesWithoutKnownNames)
     }
