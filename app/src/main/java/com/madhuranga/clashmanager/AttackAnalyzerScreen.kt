@@ -422,6 +422,57 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         }
                     }
                 }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF80643B))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("ATTACK RESULTS ANALYTICS", color = gold, fontWeight = FontWeight.ExtraBold)
+                        val parsedResults = attackResults.mapNotNull { raw -> runCatching { JSONObject(raw) }.getOrNull() }
+                        val resultCount = parsedResults.size
+                        val averageStars = if (resultCount > 0) parsedResults.map { it.optInt("stars") }.average() else 0.0
+                        val averageDestruction = if (resultCount > 0) parsedResults.map { it.optInt("destructionPercent") }.average() else 0.0
+                        val threeStarCount = parsedResults.count { it.optInt("stars") == 3 }
+                        val twoStarCount = parsedResults.count { it.optInt("stars") == 2 }
+                        val oneStarCount = parsedResults.count { it.optInt("stars") == 1 }
+                        if (resultCount == 0) {
+                            Text("Record real attack results to see your statistics here.", color = muted, fontSize = 11.sp)
+                        } else {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("RECORDED", color = muted, fontSize = 9.sp)
+                                    Text("$resultCount", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
+                                }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("AVG STARS", color = muted, fontSize = 9.sp)
+                                    Text(String.format(java.util.Locale.US, "%.2f / 3", averageStars), color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
+                                }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("AVG DAMAGE", color = muted, fontSize = 9.sp)
+                                    Text(String.format(java.util.Locale.US, "%.1f%%", averageDestruction), color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
+                                }
+                            }
+                            Divider(color = Color(0xFF465365))
+                            Text("STAR DISTRIBUTION", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            CapacityStatusRow("3 STAR", "$threeStarCount attacks", false, gold, muted)
+                            CapacityStatusRow("2 STAR", "$twoStarCount attacks", false, gold, muted)
+                            CapacityStatusRow("1 STAR", "$oneStarCount attacks", false, gold, muted)
+                            CapacityStatusRow("0 STAR", "${parsedResults.count { it.optInt("stars") == 0 }} attacks", false, gold, muted)
+                            Divider(color = Color(0xFF465365))
+                            Text("BY ATTACK MODE", color = gold, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            listOf("Clan War", "CWL", "Multiplayer", "Friendly").forEach { attackMode ->
+                                val modeResults = parsedResults.filter { it.optString("mode") == attackMode }
+                                if (modeResults.isNotEmpty()) {
+                                    val modeAverage = modeResults.map { it.optInt("stars") }.average()
+                                    val modeDamage = modeResults.map { it.optInt("destructionPercent") }.average()
+                                    CapacityStatusRow(attackMode.uppercase(), "${modeResults.size} • ${String.format(java.util.Locale.US, "%.1f", modeAverage)} ★ • ${String.format(java.util.Locale.US, "%.1f", modeDamage)}%", false, gold, muted)
+                                }
+                            }
+                            Text("Statistics use only the results you recorded on this device. They are not predictions of future attacks.", color = muted, fontSize = 10.sp)
+                        }
+                    }
+                }
                 Text("FULL ANALYSIS ROADMAP", color = gold, fontWeight = FontWeight.Bold)
                 Text(
                     listOf(
