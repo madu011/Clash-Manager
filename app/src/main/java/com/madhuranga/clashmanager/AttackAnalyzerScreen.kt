@@ -25,15 +25,15 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var notes by remember { mutableStateOf("") }
     var armySection by remember { mutableStateOf("TROOPS") }
     val profileKey = playerTag.ifBlank { "unselected" }
-    var troopSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_troops_$profileKey")) }
-    var spellSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_spells_$profileKey")) }
-    var heroSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_heroes_$profileKey")) }
-    var siegeSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_siege_$profileKey")) }
-    var prepared by remember { mutableStateOf(false) }
-    var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
-    fun prefsValue(key: String): String = prefs.getString(key, "") ?: ""
+    var troopSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_troops_$profileKey", "") ?: "") }
+    var troopLevels by remember(profileKey) { mutableStateOf(prefs.getString("attack_troop_levels_$profileKey", "") ?: "") }
+    var spellSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_spells_$profileKey", "") ?: "") }
+    var heroSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_heroes_$profileKey", "") ?: "") }
+    var siegeSetup by remember(profileKey) { mutableStateOf(prefs.getString("attack_siege_$profileKey", "") ?: "") }
+    var prepared by remember { mutableStateOf(false) }
+    var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
     var savedPlans by remember(historyKey) {
         mutableStateOf(runCatching {
@@ -91,7 +91,8 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         }
                         when (armySection) {
                             "TROOPS" -> {
-                                OutlinedTextField(troopSetup, { troopSetup = it.take(1200); prepared = false; prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply() }, label = { Text("Troops and quantities") }, placeholder = { Text("Example: Root Rider x 8, Valkyrie x 4") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                                OutlinedTextField(troopSetup, { value -> troopSetup = value.take(1200); prepared = false; prefs.edit().putString("attack_troops_$profileKey", value.take(1200)).apply() }, label = { Text("Troops and quantities") }, placeholder = { Text("Example: Root Rider x 8, Valkyrie x 4") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                                OutlinedTextField(troopLevels, { value -> troopLevels = value.take(1200); prepared = false; prefs.edit().putString("attack_troop_levels_$profileKey", value.take(1200)).apply() }, label = { Text("Troop levels") }, placeholder = { Text("Example: Root Rider:3, Valkyrie:12") }, supportingText = { Text("Format: Unit name:level, separated by commas. Enter only levels you have checked.") }, minLines = 2, modifier = Modifier.fillMaxWidth())
                                 OutlinedTextField(siegeSetup, { siegeSetup = it.take(200); prepared = false; prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply() }, label = { Text("Siege machine (optional)") }, placeholder = { Text("Example: Log Launcher") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             }
                             "SPELLS" -> OutlinedTextField(spellSetup, { spellSetup = it.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
@@ -148,7 +149,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                             put("mode", mode); put("ownTownHall", ownTownHall)
                             put("targetTownHall", targetTownHall); put("goal", goal)
                             put("notes", notes)
-                            put("troops", troopSetup); put("spells", spellSetup)
+                            put("troops", troopSetup); put("troopLevels", troopLevels); put("spells", spellSetup)
                             put("heroes", heroSetup); put("siegeMachine", siegeSetup)
                             put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
