@@ -9,6 +9,7 @@ data class ImportedAttackProfile(
     val troopLevels: String,
     val spells: String,
     val heroes: String,
+    val pets: String,
     val siegeMachine: String,
     val importedEntries: Int,
     val entriesWithoutKnownNames: Int,
@@ -39,6 +40,7 @@ object VillageAttackProfileImporter {
         val troops = namedItems("units")
         val spells = namedItems("spells")
         val heroes = namedItems("heroes")
+        val pets = namedItems("pets")
         val siege = namedItems("siege_machines")
 
         fun quantities(items: List<Pair<ExportItem, String>>): String =
@@ -53,12 +55,13 @@ object VillageAttackProfileImporter {
             item.level?.let { "$name Lv $it" }
         }.distinct().joinToString(", ")
 
-        val importedCount = troops.size + spells.size + heroes.size + siege.size
+        val importedCount = troops.size + spells.size + heroes.size + pets.size + siege.size
         return ImportedAttackProfile(
             troops = quantities(troops),
             troopLevels = levels(troops),
             spells = quantities(spells),
             heroes = heroLevels,
+            pets = quantities(pets),
             siegeMachine = siege.firstOrNull()?.second.orEmpty(),
             importedEntries = importedCount,
             entriesWithoutKnownNames = unknownNames,
