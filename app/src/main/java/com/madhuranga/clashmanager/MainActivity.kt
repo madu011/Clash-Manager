@@ -684,6 +684,48 @@ fun ClashManagerApp(openUpdatesOnStart: Boolean = false) {
                                             Text("Showing 8 of ${buildingEntries.size} building entries.", color = Muted, fontSize = 10.sp)
                                         }
                                     }
+                                    val recoveryTownHall = thLevel.toIntOrNull()
+                                    val upgradeChecks = recoverySnapshot.categories
+                                        .filter { it.key == "buildings" || it.key == "buildings2" }
+                                        .flatMap { category ->
+                                            category.items.map { item ->
+                                                val name = BuildingUpgradeCatalog.buildingName(item.dataId)
+                                                val maximum = recoveryTownHall?.let {
+                                                    BuildingUpgradeCatalog.maximumLevelAt(item.dataId, it)
+                                                }
+                                                Triple(name, item.level, maximum)
+                                            }
+                                        }
+                                    val upgradeReady = upgradeChecks.count { (_, level, maximum) ->
+                                        level != null && maximum != null && level < maximum
+                                    }
+                                    val atTownHallLimit = upgradeChecks.count { (_, level, maximum) ->
+                                        level != null && maximum != null && level >= maximum
+                                    }
+                                    val needsLevelData = upgradeChecks.count { (_, level, _) -> level == null }
+                                    val unsupportedUpgradeData = upgradeChecks.count { (name, level, maximum) ->
+                                        level != null && (name == null || maximum == null)
+                                    }
+                                    Divider(color = Color(0xFF51452F))
+                                    Text("MISSING UPGRADE DETECTION", color = Gold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    if (recoveryTownHall !in 1..18) {
+                                        Text("Enter a valid Town Hall level in Village Tools to compare supported buildings against Town Hall limits.", color = Muted, fontSize = 11.sp)
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                            VillageStatTile("UPGRADE READY", upgradeReady.toString(), "⬆️", Modifier.weight(1f))
+                                            VillageStatTile("AT TH LIMIT", atTownHallLimit.toString(), "🏁", Modifier.weight(1f))
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                                            VillageStatTile("NO LEVEL", needsLevelData.toString(), "❔", Modifier.weight(1f))
+                                            VillageStatTile("NOT COVERED", unsupportedUpgradeData.toString(), "🧩", Modifier.weight(1f))
+                                        }
+                                        upgradeChecks.filter { (name, level, maximum) ->
+                                            name != null && level != null && maximum != null && level < maximum
+                                        }.take(6).forEach { (name, level, maximum) ->
+                                            Text("${name}: Lv ${level} → ${level!! + 1} (Town Hall limit: ${maximum})", color = Color(0xFFFFE3A0), fontSize = 11.sp)
+                                        }
+                                        Text("This checks only buildings covered by the app's verified upgrade catalogue. It does not claim that unsupported buildings are missing upgrades.", color = Muted, fontSize = 10.sp)
+                                    }
                                 }
                             }
                         }
