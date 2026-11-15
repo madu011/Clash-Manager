@@ -23,10 +23,17 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
     var targetTownHall by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("3-star") }
     var notes by remember { mutableStateOf("") }
+    var armySection by remember { mutableStateOf("TROOPS") }
+    val profileKey = playerTag.ifBlank { "unselected" }
+    var troopSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_troops_$profileKey")) }
+    var spellSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_spells_$profileKey")) }
+    var heroSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_heroes_$profileKey")) }
+    var siegeSetup by remember(profileKey) { mutableStateOf(prefsValue("attack_siege_$profileKey")) }
     var prepared by remember { mutableStateOf(false) }
     var validationErrors by remember { mutableStateOf(emptyList<String>()) }
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("clash_manager", 0) }
+    fun prefsValue(key: String): String = prefs.getString(key, "") ?: ""
     val historyKey = "attack_plans_${playerTag.ifBlank { "unselected" }}"
     var savedPlans by remember(historyKey) {
         mutableStateOf(runCatching {
@@ -52,6 +59,47 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                 }
                 OutlinedTextField(ownTownHall, { ownTownHall = it.filter(Char::isDigit).take(2) }, label = { Text("Your Town Hall level") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(targetTownHall, { targetTownHall = it.filter(Char::isDigit).take(2) }, label = { Text("Target Town Hall level") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(4.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF222F40)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF80643B))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text("⚔️", fontSize = 20.sp)
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("ARMY COMPOSITION", color = gold, fontWeight = FontWeight.ExtraBold)
+                                Text("Your own troop, spell and hero details", color = muted, fontSize = 10.sp)
+                            }
+                            Text("MANUAL", color = Color(0xFF9BE7A8), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            listOf("TROOPS", "SPELLS", "HEROES").forEach { section ->
+                                val selected = armySection == section
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { armySection = section },
+                                    color = if (selected) Color(0xFF765326) else Color(0xFF172230),
+                                    shape = RoundedCornerShape(9.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) gold else Color(0xFF465365))
+                                ) {
+                                    Text(section, modifier = Modifier.padding(vertical = 10.dp, horizontal = 3.dp), color = if (selected) Color.White else muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                }
+                            }
+                        }
+                        when (armySection) {
+                            "TROOPS" -> {
+                                OutlinedTextField(troopSetup, { troopSetup = it.take(1200); prepared = false; prefs.edit().putString("attack_troops_$profileKey", troopSetup).apply() }, label = { Text("Troops and quantities") }, placeholder = { Text("Example: Root Rider x 8, Valkyrie x 4") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                                OutlinedTextField(siegeSetup, { siegeSetup = it.take(200); prepared = false; prefs.edit().putString("attack_siege_$profileKey", siegeSetup).apply() }, label = { Text("Siege machine (optional)") }, placeholder = { Text("Example: Log Launcher") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            }
+                            "SPELLS" -> OutlinedTextField(spellSetup, { spellSetup = it.take(800); prepared = false; prefs.edit().putString("attack_spells_$profileKey", spellSetup).apply() }, label = { Text("Spells and quantities") }, placeholder = { Text("Example: Rage x 2, Freeze x 3") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                            else -> OutlinedTextField(heroSetup, { heroSetup = it.take(500); prepared = false; prefs.edit().putString("attack_heroes_$profileKey", heroSetup).apply() }, label = { Text("Hero levels and equipment notes") }, placeholder = { Text("Example: Barbarian King Lv 90, Archer Queen Lv 95") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                        }
+                        Text("These are saved as your manual profile. The app does not detect troop levels automatically yet.", color = muted, fontSize = 10.sp)
+                    }
+                }
                 Text("ATTACK GOAL", color = gold, fontWeight = FontWeight.Bold)
                 Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("1-star", "2-star", "3-star").forEach {
@@ -99,7 +147,10 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                         val item = JSONObject().apply {
                             put("mode", mode); put("ownTownHall", ownTownHall)
                             put("targetTownHall", targetTownHall); put("goal", goal)
-                            put("notes", notes); put("createdAt", System.currentTimeMillis())
+                            put("notes", notes)
+                            put("troops", troopSetup); put("spells", spellSetup)
+                            put("heroes", heroSetup); put("siegeMachine", siegeSetup)
+                            put("createdAt", System.currentTimeMillis())
                             put("screenshotUri", screenshotUri?.toString() ?: "")
                         }
                         val updated = (listOf(item.toString()) + savedPlans).take(30)
