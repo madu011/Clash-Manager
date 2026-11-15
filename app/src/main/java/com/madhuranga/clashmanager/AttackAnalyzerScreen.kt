@@ -126,7 +126,7 @@ fun AttackAnalyzerScreen(playerTag: String, screenshotUri: Uri?, onPickScreensho
                                         GameDataPackParser.parse(packJson, JSONObject(packJson).getInt("dataPackVersion"))
                                     }.getOrNull()
                                     runCatching {
-                                        VillageAttackProfileImporter.import(rawExport, activePack)
+                                        VillageAttackProfileImporter.fromVillageExport(rawExport, activePack)
                                     }.onSuccess { imported ->
                                         if (imported.troops.isNotBlank()) {
                                             troopSetup = imported.troops
